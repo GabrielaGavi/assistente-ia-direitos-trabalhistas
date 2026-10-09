@@ -2477,6 +2477,10 @@ Foram definidas como ferramentas complementares:
 
 Utilizado para consultar documentação atualizada das bibliotecas durante o desenvolvimento assistido por IA.
 
+### Spec-Kit
+
+Utilizado como kit de ferramentas para Desenvolvimento Dirigido por Especificações (Spec-Driven Development), estabelecendo constituição, especificações, planos e tarefas antes da implementação (`/speckit-specify`, `/speckit-plan`, `/speckit-tasks`, `/speckit-implement`, `/speckit-converge`).
+
 ### Impeccable
 
 Utilizado como apoio à qualidade visual e refinamento da interface.
@@ -2540,6 +2544,12 @@ JWT, RBAC, rate limiting, sanitização e proteção contra prompt injection.
 ### 10\. Observabilidade
 
 Jobs, execuções de IA e operações administrativas são rastreáveis.
+
+### 11\. Metodologia Spec-Kit + TDD + Pareto
+
+- **Spec-Kit:** Definir o que construir antes do código, com especificações e critérios de aceitação verificáveis.
+- **TDD:** Ciclo estrito Red-Green-Refactor com `pytest` (backend) e ferramentas padronizadas (frontend); nenhuma tarefa é considerada concluída apenas porque o código foi escrito.
+- **Pareto:** Priorização por maior valor e redução de riscos (P0 para alicerces jurídicos e RAG; P1 para UI e avaliação; P2 para refinamentos visuais). Pareto prioriza o trabalho, nunca justifica ausência de testes.
 
 ---
 
@@ -2749,7 +2759,49 @@ A arquitetura final pode ser resumida assim:
 
 ---
 
-# 98\. Ordem recomendada de implementação
+# 98\. Metodologia de desenvolvimento e ordem de implementação
+
+A execução do projeto é estruturada combinando **Spec-Kit**, **Pareto** e **TDD**:
+
+### Matriz de Priorização Pareto (Valor e Riscos)
+
+| Prioridade | Área | Justificativa |
+| :--- | :--- | :--- |
+| **P0** | Fontes jurídicas e rastreabilidade | Evita respostas sem fundamentação verificável. |
+| **P0** | Ingestão e processamento de documentos | Sem base de conhecimento confiável, o assistente não tem fundamento. |
+| **P0** | Busca híbrida e recuperação de contexto | Determina quais informações chegam ao modelo de linguagem. |
+| **P0** | Geração de respostas com citações | Núcleo do produto; deve tratar rigorosamente insuficiência de evidências. |
+| **P1** | Interface de perguntas e respostas | Torna o mecanismo acessível e intuitivo para o trabalhador. |
+| **P1** | Feedback, observabilidade e avaliação | Permite diagnosticar falhas, alucinações e aprimorar o RAG. |
+| **P2** | Animações, personalizações e refinamentos | Melhorias visuais que aguardam a validação do fluxo essencial. |
+
+> **Importante:** Pareto orienta a ordem de desenvolvimento com base em valor e risco, jamais justificando a ausência de testes em funcionalidades menos prioritárias.
+
+### Ciclo de Desenvolvimento por Tarefa
+
+``` text
+IDEIA / PROBLEMA
+       ↓
+SPEC-KIT: SPECIFY (Problema e critérios de aceitação verificáveis)
+       ↓
+SPEC-KIT: PLAN (Decisões técnicas e contratos)
+       ↓
+SPEC-KIT: TASKS (Tarefas atômicas e testáveis)
+       ↓
+PRIORIZAÇÃO PARETO (P0 → P1 → P2)
+       ↓
+TDD: Teste que falha (RED)
+       ↓
+Implementação mínima (GREEN)
+       ↓
+Refatoração de código (REFACTOR)
+       ↓
+Testes de regressão
+       ↓
+Auditoria de critérios e conclusão
+```
+
+---
 
 ## Fase 1 — Fundação
 
