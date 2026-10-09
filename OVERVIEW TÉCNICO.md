@@ -5,8 +5,8 @@
 **Projeto:** Assistente Inteligente de Orientação sobre Direitos Trabalhistas  
 **Curso:** Ciência da Computação — FAESA  
 **Tipo:** Projeto Integrador IV  
-**Stack principal:** Next.js + TypeScript + FastAPI + Python + PostgreSQL/pgvector + Groq  
-**Arquitetura:** Modular Monolith  
+**Stack principal:** Next.js + TypeScript + FastAPI + Python + Neon PostgreSQL (pgvector + FTS) + Groq  
+**Arquitetura:** Monólito Modular + Arquitetura Hexagonal (Ports and Adapters)  
 **Versão:** 1.0 — Consolidada após entrevista arquitetural
 
 ---
@@ -44,7 +44,7 @@ A arquitetura foi definida para atender simultaneamente:
 
 A solução não utilizará microservices no MVP.
 
-A arquitetura será um **modular monolith**, permitindo separar claramente os domínios sem introduzir a complexidade operacional de múltiplos serviços independentes.
+A arquitetura será um **monólito modular combinado com arquitetura hexagonal (Ports and Adapters)**, permitindo separar claramente os domínios de negócio e isolar as regras centrais de tecnologias de infraestrutura e provedores externos sem introduzir a complexidade operacional de múltiplos serviços independentes.
 
 ---
 
@@ -123,13 +123,16 @@ External:
 
 - Python
 - FastAPI
+- Pydantic
 - SQLAlchemy 2
 - Alembic
-- Pydantic
-- PostgreSQL
-- pgvector
-- PostgreSQL Full Text Search
 - pytest
+
+## Banco de Dados
+
+- Neon PostgreSQL
+- pgvector (busca vetorial)
+- PostgreSQL Full Text Search (busca textual)
 
 ## Inteligência Artificial
 
@@ -143,7 +146,7 @@ External:
 
 - Docker
 - Docker Compose
-- PostgreSQL gerenciado
+- Neon PostgreSQL gerenciado
 - Object Storage S3-compatible
 - Render
 - GitHub Actions
@@ -153,7 +156,7 @@ External:
 
 # 5\. Arquitetura do backend
 
-O backend será organizado por **domínio**, e não por uma divisão global de controllers/services/repositories.
+O backend adota o padrão de **Monólito Modular** com **Arquitetura Hexagonal (Ports and Adapters)**, organizado por **domínio** em vez de uma divisão global em camadas técnicas. O domínio e os casos de uso permanecem desacoplados de bibliotecas e recursos de infraestrutura externos.
 
 Estrutura conceitual:
 
@@ -213,11 +216,11 @@ Representa entidades persistidas.
 
 ---
 
-# 6\. Providers
+# 6\. Providers (Ports and Adapters)
 
-Integrações externas não ficarão diretamente espalhadas pelos services.
+Seguindo a arquitetura hexagonal, integrações externas e serviços de infraestrutura comunicam-se com o domínio exclusivamente através de **portas (interfaces abstratas)** e **adaptadores (implementações concretas)**.
 
-Serão utilizadas abstrações:
+Portas (Ports):
 
 ``` text
 LLMProvider
@@ -226,7 +229,7 @@ Reranker
 StorageProvider
 ```
 
-Implementações iniciais:
+Adaptadores iniciais (Adapters):
 
 ``` text
 GroqLLMProvider
@@ -235,7 +238,7 @@ LocalReranker
 S3StorageProvider
 ```
 
-Isso permite substituir o provedor posteriormente sem alterar a lógica de negócio.
+Isso permite substituir qualquer provedor externo ou tecnologia de infraestrutura sem alterar a lógica de negócio do domínio.
 
 ---
 
@@ -243,9 +246,9 @@ Isso permite substituir o provedor posteriormente sem alterar a lógica de negó
 
 ## Tecnologia
 
-PostgreSQL + pgvector.
+**Neon PostgreSQL + pgvector + Full Text Search (FTS)**.
 
-As decisões anteriores descartam ChromaDB para o MVP.
+O armazenamento relacional, a indexação vetorial (`pgvector`) e a busca textual (`FTS`) são unificados diretamente no **Neon PostgreSQL**. A arquitetura dispensa bancos vetoriais dedicados externos como **Qdrant** ou ChromaDB no MVP, reduzindo latência de rede, custo e complexidade operacional, além de assegurar integridade transacional ACID em uma única base de dados.
 
 SQLAlchemy 2 será utilizado com abordagem assíncrona e Alembic para migrations.
 
@@ -645,17 +648,15 @@ Elaborando resposta...
 
 # 18\. API
 
-Prefixo:
+A API é estruturada sob os padrões **RESTful**, com payload em formato **JSON**, documentação automática via **OpenAPI (Swagger)** e suporte nativo a **SSE (Server-Sent Events)** para streaming de respostas.
 
-``` text
-/api/v1
-```
+Padrões adotados:
 
-Formato:
-
-``` text
-JSON
-```
+- **Estilo:** RESTful
+- **Prefixo:** `/api/v1`
+- **Formato:** JSON
+- **Documentação:** OpenAPI 3.0 (Swagger UI em `/docs` e ReDoc em `/redoc`)
+- **Streaming:** SSE (Server-Sent Events) via HTTP
 
 Erros padronizados:
 
@@ -2547,11 +2548,13 @@ Jobs, execuções de IA e operações administrativas são rastreáveis.
 ## Banco
 
 ``` text
-PostgreSQL
+Neon PostgreSQL
 pgvector
+PostgreSQL Full Text Search
 SQLAlchemy 2 Async
 Alembic
 UUID v7
+(sem Qdrant ou ChromaDB)
 ```
 
 ## RAG
@@ -2587,6 +2590,15 @@ Llama 3.3 70B
 paraphrase-multilingual-mpnet-base-v2
 ```
 
+## API
+
+``` text
+RESTful
+JSON
+OpenAPI (Swagger)
+SSE (Streaming)
+```
+
 ## Streaming
 
 ``` text
@@ -2609,7 +2621,11 @@ S3-compatible Object Storage
 
 ``` text
 FastAPI
-Modular Monolith
+Pydantic
+SQLAlchemy 2
+Alembic
+pytest
+Monólito Modular + Arquitetura Hexagonal (Ports and Adapters)
 ```
 
 ## Frontend
@@ -2654,7 +2670,7 @@ Playwright
 
 ``` text
 Render
-PostgreSQL gerenciado
+Neon PostgreSQL gerenciado
 GitHub Actions
 ```
 
@@ -2669,9 +2685,9 @@ Para evitar crescimento desnecessário do escopo:
 - gerenciamento administrativo de usuários;
 - busca semântica no histórico;
 - busca textual no histórico;
-- WebSocket para chat;
+- WebSocket para chat (streaming via SSE);
 - autenticação via localStorage;
-- ChromaDB;
+- Qdrant e ChromaDB (busca vetorial unificada via pgvector no Neon);
 - execução automática de ingestion no startup;
 - múltiplas assistant messages para uma mesma resposta;
 - fallback para documentos antigos/inativos;
@@ -2703,8 +2719,8 @@ A arquitetura final pode ser resumida assim:
              ┌─────────────────────┼─────────────────────┐
              │                     │                     │
              ▼                     ▼                     ▼
-        PostgreSQL              RAG Module          Auth/RBAC
-        + pgvector                  │
+        Neon PostgreSQL         RAG Module          Auth/RBAC
+        + pgvector + FTS             │
              │                      │
              │              ┌───────┴────────┐
              │              │                │
@@ -2853,14 +2869,14 @@ A arquitetura final pode ser resumida assim:
 
 # 99\. Estado final da arquitetura
 
-O sistema será um **assistente jurídico-informativo baseado em RAG**, implementado como **modular monolith**, com:
+O sistema será um **assistente jurídico-informativo baseado em RAG**, implementado como **monólito modular aliado à arquitetura hexagonal (Ports and Adapters)**, com:
 
 ``` text
 Next.js
       ↓
-FastAPI
+FastAPI (RESTful + OpenAPI + SSE)
       ↓
-PostgreSQL + pgvector
+Neon PostgreSQL (pgvector + FTS)
       ↓
 Hybrid Retrieval
       ↓
