@@ -259,10 +259,12 @@ uv run alembic downgrade -1
 uv run alembic current
 ```
 
-> **Atenção:** todo modelo novo precisa ser importado em **dois** arquivos —
-> `backend/tests/conftest.py` e `backend/alembic/env.py`. Sem isso o `autogenerate`
-> gera uma migration vazia ou, pior, um `DROP TABLE`. Existe um teste
-> (`tests/integration/test_migrations.py`) que detecta esse esquecimento.
+> **Atenção:** ao criar um modelo novo, adicione o import dele em
+> `backend/app/models_registry.py`. É o único lugar. Sem isso o `autogenerate`
+> gera uma migration vazia ou, pior, um `DROP TABLE` da tabela que ele não
+> enxergou. Dois testes detectam esse esquecimento e dizem qual tabela ficou de
+> fora: `tests/unit/test_models_registry.py` e
+> `tests/integration/test_migrations.py`.
 
 ### Adicionar uma dependência nova
 

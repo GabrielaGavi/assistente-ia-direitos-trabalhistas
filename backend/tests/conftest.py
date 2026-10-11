@@ -27,10 +27,9 @@ import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-# `app.shared.audit.models` e importado pelo efeito colateral de registrar as
-# tabelas em Base.metadata. Cada novo modelo do dominio precisa ser importado
-# aqui para que o create_all da fixture de schema o enxergue.
-from app.shared.audit import models as _audit_models  # noqa: F401
+# Importado pelo efeito colateral de registrar as tabelas em Base.metadata,
+# sem o que o create_all da fixture de schema nao criaria tabela nenhuma.
+import app.models_registry  # noqa: F401
 from app.shared.database import Base, create_database_engine
 
 URL_PADRAO_DE_TESTE = (

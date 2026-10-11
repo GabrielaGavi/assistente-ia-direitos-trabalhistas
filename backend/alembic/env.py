@@ -22,12 +22,11 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+# Importado pelo efeito colateral de registrar as tabelas em Base.metadata.
+# Sem isto o autogenerate nao enxerga as tabelas e gera uma migration vazia --
+# ou pior, um DROP TABLE. Modelos novos entram em app/models_registry.py.
+import app.models_registry  # noqa: F401
 from alembic import context
-
-# `app.shared.audit.models` e importado pelo efeito colateral de registrar suas
-# tabelas em Base.metadata. Sem isto, o autogenerate nao enxerga a tabela e gera
-# uma migration vazia -- ou pior, um DROP TABLE. Cada modelo novo entra aqui.
-from app.shared.audit import models as _audit_models  # noqa: F401
 from app.shared.database import Base, get_database_settings
 
 config = context.config
