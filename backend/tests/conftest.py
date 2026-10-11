@@ -20,11 +20,11 @@ Rastreabilidade:
     ADR: 0004 (PostgreSQL como banco de testes)
 """
 
-import os
 from collections.abc import AsyncIterator
 
 import pytest
 import pytest_asyncio
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 # Importado pelo efeito colateral de registrar as tabelas em Base.metadata,
@@ -37,15 +37,33 @@ URL_PADRAO_DE_TESTE = (
 )
 
 
+class ConfiguracaoDeTeste(BaseSettings):
+    """Configuracao da suite, lida do ambiente ou de `backend/.env`.
+
+    Usa pydantic-settings pelo mesmo motivo que `DatabaseSettings`: ler
+    `os.environ` direto ignoraria o `.env`, e quem editasse
+    `TEST_DATABASE_URL` la nao veria efeito nenhum -- um silencio que custa
+    caro, porque a suite continuaria apontando para o banco padrao.
+    """
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    test_database_url: str = URL_PADRAO_DE_TESTE
+
+
 @pytest.fixture(scope="session")
 def test_database_url() -> str:
     """URL do banco de testes.
 
-    Lida de `TEST_DATABASE_URL` quando definida, com um padrao que corresponde
-    ao servico declarado no `docker-compose.yml` -- assim a suite roda sem
-    configuracao previa em qualquer maquina do grupo.
+    Precedencia: variavel de ambiente, depois `backend/.env`, depois o padrao
+    -- que corresponde ao servico do `docker-compose.yml`, para a suite rodar
+    sem configuracao previa em qualquer maquina do grupo.
     """
-    return os.getenv("TEST_DATABASE_URL", URL_PADRAO_DE_TESTE)
+    return ConfiguracaoDeTeste().test_database_url
 
 
 @pytest_asyncio.fixture(scope="session")

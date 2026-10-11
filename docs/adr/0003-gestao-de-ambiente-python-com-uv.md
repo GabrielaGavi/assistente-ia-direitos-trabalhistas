@@ -154,5 +154,5 @@ padrão e um `pyproject.toml` padrão. A decisão é reversível com baixo custo
 
 1. [x] Criar `backend/pyproject.toml` e versionar `backend/uv.lock` (T002).
 2. [x] Adicionar `.venv/` ao `.gitignore`.
-3. [ ] Documentar `uv sync --group dev` na seção "Como Executar" do README.
+3. [x] Documentar `uv sync --group dev` na seção "Como Executar" do README.
 4. [ ] Usar a action oficial do uv quando houver CI.

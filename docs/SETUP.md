@@ -173,7 +173,7 @@ uv run pytest
 
 **Resultado esperado:** todos os testes passando, nenhum erro.
 
-Se aparecer `89 passed` (ou mais, conforme o projeto avança), seu ambiente está pronto.
+Se a última linha disser `N passed` sem nenhum `failed`, seu ambiente está pronto.
 
 Confira também o lint:
 
