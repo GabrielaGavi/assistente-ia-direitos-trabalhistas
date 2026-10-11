@@ -19,7 +19,7 @@
 **Purpose**: Infraestrutura de persistência, conexão com o banco e suporte a testes
 
 - [x] T004 Implementar gerenciamento assíncrono de sessão do SQLAlchemy em `backend/app/shared/database.py`
-- [ ] T005 [P] Implementar schemas base e modelo de auditoria em `backend/app/shared/audit/models.py`
+- [x] T005 [P] Implementar schemas base e modelo de auditoria em `backend/app/shared/audit/models.py`
 - [ ] T006 [P] Configurar fixtures assíncronas do pytest para testes de banco em `backend/tests/conftest.py`
 - [ ] T007 Configurar inicialização do Alembic e migrations em `backend/alembic/`
 
