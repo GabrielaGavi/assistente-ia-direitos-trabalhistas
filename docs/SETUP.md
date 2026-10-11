@@ -35,6 +35,10 @@ Guia completo para preparar a máquina e começar a trabalhar no projeto.
 Não instale PostgreSQL direto na máquina. Ele roda em contêiner, o que mantém a
 mesma versão e as mesmas extensões para todo o grupo.
 
+Se você já tem **Python 3.10 ou 3.11**, serve: a suíte foi executada e passou nas
+versões 3.10.11 e 3.12.10. O 3.12 é a recomendação por ser a versão em que o
+projeto é desenvolvido no dia a dia.
+
 ---
 
 ## 2. Instalação
