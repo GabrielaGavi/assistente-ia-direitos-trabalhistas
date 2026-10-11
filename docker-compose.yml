@@ -1,0 +1,40 @@
+# Ambiente de desenvolvimento local.
+#
+# A imagem pgvector/pgvector:pg16 e o PostgreSQL 16 oficial ja com a extensao
+# `vector` compilada, exigida pela busca hibrida das proximas features.
+#
+# Requisito: virtualizacao (Intel VT-x / AMD-V) habilitada na BIOS/UEFI.
+# Ver docs/adr/0004-banco-postgresql-para-testes-de-integracao.md
+#
+# Subir:   docker compose up -d
+# Derrubar: docker compose down          (mantem os dados)
+#           docker compose down -v       (apaga os dados)
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: assistente-trabalhista-db
+    restart: unless-stopped
+    environment:
+      # Credenciais de DESENVOLVIMENTO LOCAL apenas.
+      # Producao usa Neon com segredos fora do repositorio.
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: assistente_trabalhista
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Executado apenas na primeira criacao do volume.
+      - ./scripts/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d assistente_trabalhista"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  pgdata:
+    name: assistente-trabalhista-pgdata

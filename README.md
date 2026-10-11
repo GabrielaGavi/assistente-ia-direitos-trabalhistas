@@ -129,11 +129,19 @@ O componente de Inteligência Artificial será submetido a baterias de testes co
 
 ## 🚀 Como Executar o Projeto
 
+> 📘 **Primeira vez no projeto?** Siga o **[Guia de Setup completo](docs/SETUP.md)** —
+> ele cobre a instalação passo a passo, os comandos do dia a dia, o fluxo de trabalho
+> das tasks e a solução dos problemas conhecidos (dois deles atingem praticamente
+> todo mundo no Windows 11).
+
 ### Pré-requisitos
-- [Python 3.10+](https://www.python.org/)
-- [Node.js 18+](https://nodejs.org/) e `npm`
-- Instância do [PostgreSQL](https://www.postgresql.org/) (opcionalmente com extensão `pgvector`)
-- Chave de API da [GroqCloud](https://console.groq.com/)
+- [Git](https://git-scm.com/)
+- [Python 3.12](https://www.python.org/)
+- [uv](https://docs.astral.sh/uv/) — gerenciador de pacotes e ambiente virtual
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) — sobe o PostgreSQL 16 com `pgvector`
+
+Não é preciso instalar PostgreSQL na máquina: ele roda em contêiner, garantindo a
+mesma versão e as mesmas extensões para todo o grupo.
 
 ### 1. Clonar o repositório
 ```bash
@@ -141,42 +149,51 @@ git clone https://github.com/GabrielaGavi/assistente-ia-direitos-trabalhistas.gi
 cd assistente-ia-direitos-trabalhistas
 ```
 
-### 2. Configuração do Backend (FastAPI)
+### 2. Subir o banco de dados
+Com o Docker Desktop aberto, na raiz do projeto:
 ```bash
-# Entrar no diretório do backend (quando estruturado)
-cd backend
-
-# Criar e ativar o ambiente virtual
-python -m venv venv
-# No Windows:
-.\venv\Scripts\activate
-# No Linux/macOS:
-source venv/bin/activate
-
-# Instalar dependências
-pip install -r requirements.txt
-
-# Configurar variáveis de ambiente (.env)
-cp .env.example .env
-# Preencha GROQ_API_KEY, DATABASE_URL, etc.
-
-# Iniciar o servidor
-uvicorn main:app --reload
+docker compose up -d
 ```
 
-### 3. Configuração do Frontend (Next.js / React)
+### 3. Configurar o Backend (FastAPI)
 ```bash
-# Em um novo terminal, entrar no diretório do frontend
+cd backend
+
+# Variáveis de ambiente (já vem preenchido para o banco do Docker)
+cp .env.example .env
+
+# Cria o .venv e instala as dependências nas versões exatas do uv.lock
+uv sync --group dev
+
+# Aplica as migrations
+uv run alembic upgrade head
+
+# Verifica se está tudo certo
+uv run pytest
+```
+
+### 4. Configurar o Frontend (Next.js / React)
+> Ainda não implementado — será iniciado após o MVP do backend.
+
+```bash
 cd frontend
-
-# Instalar dependências
 npm install
-
-# Iniciar o servidor de desenvolvimento
 npm run dev
 ```
 
-Acesse a interface no navegador em: `http://localhost:3000` (Frontend) e a documentação da API em `http://localhost:8000/docs` (Swagger Backend).
+Quando o servidor do backend existir, a documentação da API ficará em
+`http://localhost:8000/docs` (Swagger) e a interface em `http://localhost:3000`.
+
+---
+
+## 📚 Documentação do Projeto
+
+| Documento | Conteúdo |
+|---|---|
+| [Guia de Setup](docs/SETUP.md) | Instalação, comandos, fluxo de trabalho e troubleshooting |
+| [Decisões de Arquitetura (ADRs)](docs/adr/README.md) | Por que cada decisão técnica foi tomada, e o que foi descartado |
+| [Constituição do Projeto](.specify/memory/constitution.md) | Princípios inegociáveis: SDD, TDD, groundedness factual |
+| [Especificação da Feature 001](specs/001-fontes-e-rastreabilidade/spec.md) | Requisitos e critérios de aceitação |
 
 ---
 

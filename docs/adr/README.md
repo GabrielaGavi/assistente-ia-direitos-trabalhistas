@@ -16,7 +16,8 @@ e evita que uma escolha deliberada seja desfeita por engano meses depois.
 | [0001](0001-uuid-v7-como-identificador-de-dominio.md) | UUID v7 como identificador de domínio | Aceita | 2026-10-11 |
 | [0002](0002-datas-timezone-aware-em-utc.md) | Datas *timezone-aware* em UTC | Aceita | 2026-10-11 |
 | [0003](0003-gestao-de-ambiente-python-com-uv.md) | Gestão de ambiente Python com uv | Aceita | 2026-10-11 |
-| [0004](0004-banco-postgresql-para-testes-de-integracao.md) | Banco PostgreSQL para testes de integração | Proposta | 2026-10-11 |
+| [0004](0004-banco-postgresql-para-testes-de-integracao.md) | Banco PostgreSQL para testes de integração | Aceita | 2026-10-11 |
+| [0005](0005-sqlalchemy-em-python-puro.md) | SQLAlchemy instalado em Python puro | Aceita | 2026-10-11 |
 
 ## Status possíveis
 
