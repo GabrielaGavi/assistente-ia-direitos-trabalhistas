@@ -32,12 +32,12 @@
 **Independent Test**: Criar citação associada a um chunk ativo e verificar que `GET /api/v1/citations/{id}` retorna o trecho literal íntegro, o artigo e a fonte oficial do Planalto.
 
 ### Tests for User Story 1 (TDD - RED) 🔴
-- [ ] T008 [P] [US1] Escrever teste unitário para validação de schema de citação em `backend/tests/unit/test_citations_schema.py`
+- [x] T008 [P] [US1] Escrever teste unitário para validação de schema de citação em `backend/tests/unit/test_citations_schema.py`
 - [ ] T009 [P] [US1] Escrever teste de integração para o endpoint `GET /api/v1/citations/{id}` em `backend/tests/integration/test_citations_api.py`
 
 ### Implementation for User Story 1 (GREEN & REFACTOR) 🟢
-- [ ] T010 [P] [US1] Implementar modelo SQLAlchemy `Citation` em `backend/app/citations/models.py`
-- [ ] T011 [P] [US1] Implementar schemas Pydantic `CitationResponse` e `CitationDetailResponse` em `backend/app/citations/schemas.py`
+- [x] T010 [P] [US1] Implementar modelo SQLAlchemy `Citation` em `backend/app/citations/models.py`
+- [x] T011 [P] [US1] Implementar schemas Pydantic `CitationResponse` e `CitationDetailResponse` em `backend/app/citations/schemas.py`
 - [ ] T012 [US1] Implementar repositório `CitationRepository` em `backend/app/citations/repository.py`
 - [ ] T013 [US1] Implementar serviço `CitationService` com resolução de links em `backend/app/citations/service.py`
 - [ ] T014 [US1] Implementar router FastAPI de citações em `backend/app/citations/router.py`
@@ -55,8 +55,8 @@
 - [ ] T016 [P] [US2] Escrever testes de integração dos endpoints `POST /api/v1/sources` e `POST /api/v1/documents` em `backend/tests/integration/test_sources_documents_api.py`
 
 ### Implementation for User Story 2 (GREEN & REFACTOR) 🟢
-- [ ] T017 [P] [US2] Implementar modelo SQLAlchemy `Source` em `backend/app/sources/models.py`
-- [ ] T018 [P] [US2] Implementar modelo SQLAlchemy `Document` com enum de status em `backend/app/documents/models.py`
+- [x] T017 [P] [US2] Implementar modelo SQLAlchemy `Source` em `backend/app/sources/models.py`
+- [x] T018 [P] [US2] Implementar modelo SQLAlchemy `Document` com enum de status em `backend/app/documents/models.py`
 - [ ] T019 [P] [US2] Implementar schemas Pydantic para fontes (`SourceCreate`, `SourceResponse`) em `backend/app/sources/schemas.py`
 - [ ] T020 [P] [US2] Implementar schemas Pydantic para documentos (`DocumentCreate`, `DocumentResponse`) em `backend/app/documents/schemas.py`
 - [ ] T021 [US2] Implementar `SourceRepository` e `SourceService` em `backend/app/sources/repository.py` e `backend/app/sources/service.py`
@@ -75,8 +75,8 @@
 - [ ] T024 [P] [US3] Escrever testes unitários e de integração para filtragem de chunks em `backend/tests/unit/test_chunks_filter.py`
 
 ### Implementation for User Story 3 (GREEN & REFACTOR) 🟢
-- [ ] T025 [P] [US3] Implementar modelo SQLAlchemy `DocumentChunk` em `backend/app/documents/chunk_models.py`
-- [ ] T026 [P] [US3] Implementar schemas Pydantic para chunks (`DocumentChunkResponse`) em `backend/app/documents/chunk_schemas.py`
+- [x] T025 [P] [US3] Implementar modelo SQLAlchemy `DocumentChunk` em `backend/app/documents/chunk_models.py`
+- [x] T026 [P] [US3] Implementar schemas Pydantic para chunks (`DocumentChunkResponse`) em `backend/app/documents/chunk_schemas.py`
 - [ ] T027 [US3] Implementar consulta estruturada de chunks no `DocumentRepository` em `backend/app/documents/repository.py`
 - [ ] T028 [US3] Expor endpoint `GET /api/v1/documents/{id}/chunks` no router de documentos em `backend/app/documents/router.py`
 
