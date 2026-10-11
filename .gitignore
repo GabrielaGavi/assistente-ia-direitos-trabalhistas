@@ -48,3 +48,6 @@ local_storage/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Python virtual env (uv)
+.venv/
