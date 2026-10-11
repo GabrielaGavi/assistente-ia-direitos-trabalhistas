@@ -51,3 +51,4 @@ Thumbs.db
 
 # Python virtual env (uv)
 .venv/
+.venv*/

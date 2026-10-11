@@ -98,6 +98,26 @@ class TestCreateDatabaseEngine:
         with pytest.raises(ValueError, match=r"postgresql\+asyncpg"):
             create_database_engine("postgresql://user:pass@localhost/teste")
 
+    @pytest.mark.parametrize(
+        "url_invalida",
+        [
+            "nao-e-uma-url",
+            "postgresql+driver_inexistente://user:pass@localhost/teste",
+            "",
+        ],
+    )
+    def test_rejeita_url_malformada(self, url_invalida: str) -> None:
+        """URL quebrada tambem precisa falhar cedo, com mensagem util."""
+        with pytest.raises(ValueError, match="invalida"):
+            create_database_engine(url_invalida)
+
+    def test_mensagem_de_erro_nao_vaza_a_senha(self) -> None:
+        """A mensagem vai para log; a Definition of Done proibe credencial em log."""
+        with pytest.raises(ValueError) as erro:
+            create_database_engine("postgresql://usuario:SENHA_SECRETA@host/banco")
+
+        assert "SENHA_SECRETA" not in str(erro.value)
+
 
 class TestCreateSessionFactory:
     def test_retorna_async_sessionmaker(self) -> None:

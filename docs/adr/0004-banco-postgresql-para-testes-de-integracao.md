@@ -1,6 +1,6 @@
 # ADR-0004: Banco PostgreSQL para testes de integração
 
-**Status:** Aceita — Opção A (aguardando execução)
+**Status:** Aceita — Opção A (implementada)
 **Data:** 2026-10-11
 **Decisores:** Equipe do Projeto Integrador IV (turma 6HC1)
 **Tarefas relacionadas:** T006 (#12), T007 (#13)
@@ -191,7 +191,7 @@ compatíveis — habilitar a virtualização depois não invalida uma instalaç�
 ## Itens de ação
 
 1. [x] Decidir entre Opção A e Opção B (escolhida: Opção A).
-2. [ ] Provisionar o PostgreSQL 16 e registrar a `DATABASE_URL` em `.env.example`.
-3. [ ] Implementar as fixtures assíncronas com rollback por teste (T006).
-4. [ ] Inicializar o Alembic e gerar a primeira migration (T007).
+2. [x] Provisionar o PostgreSQL 16 e registrar a `DATABASE_URL` em `.env.example`.
+3. [x] Implementar as fixtures assíncronas com rollback por teste (T006).
+4. [x] Inicializar o Alembic e gerar a primeira migration (T007).
 5. [x] Atualizar o status deste ADR registrando a opção escolhida.
