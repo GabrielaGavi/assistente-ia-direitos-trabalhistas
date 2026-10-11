@@ -1,0 +1,68 @@
+[project]
+name = "assistente-direitos-trabalhistas-backend"
+version = "0.1.0"
+description = "Backend do Assistente Inteligente de Orientacao sobre Direitos Trabalhistas (RAG com citacoes rastreaveis)"
+readme = "../README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn>=0.32.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30.0",
+    "alembic>=1.14.0",
+    "uuid-utils>=0.10.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "httpx>=0.28.0",
+    "ruff>=0.8.0",
+]
+
+# Projeto de aplicacao (nao e uma biblioteca distribuivel).
+[tool.uv]
+package = false
+
+# O Smart App Control do Windows 11 (ligado por padrao em instalacoes novas)
+# bloqueia o carregamento das extensoes Cython do SQLAlchemy por falta de
+# reputacao do binario, derrubando o import com
+# "DLL load failed while importing _collections_cy".
+#
+# Construir a partir do source faz o SQLAlchemy instalar seus modulos em Python
+# puro -- os mesmos arquivos .py que ele ja distribui ao lado dos .pyd.
+# O custo e um pouco de desempenho no processamento de resultados, irrelevante
+# na escala deste projeto. Ver docs/adr/0005-sqlalchemy-em-python-puro.md
+no-binary-package = ["sqlalchemy"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+# Escopo de sessao nos dois: o engine e o pool de conexoes sao criados uma vez
+# por suite, e conexoes asyncpg ficam presas ao event loop que as criou. Com
+# loop por funcao, a primeira reutilizacao do pool falharia com
+# "attached to a different loop".
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra --strict-markers"
+markers = [
+    "unit: testes unitarios sem dependencia de banco",
+    "integration: testes de integracao que exigem PostgreSQL",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["*/__init__.py", "*/alembic/*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
