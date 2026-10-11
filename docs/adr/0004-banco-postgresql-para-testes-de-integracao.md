@@ -1,6 +1,6 @@
 # ADR-0004: Banco PostgreSQL para testes de integração
 
-**Status:** Proposta — bloqueada por restrição de ambiente
+**Status:** Aceita — Opção A (aguardando execução)
 **Data:** 2026-10-11
 **Decisores:** Equipe do Projeto Integrador IV (turma 6HC1)
 **Tarefas relacionadas:** T006 (#12), T007 (#13)
@@ -55,8 +55,37 @@ entrar no setup da BIOS e habilitar a virtualização.
 
 ## Decisão
 
-*Pendente.* Mantém-se PostgreSQL como banco de testes — isso não está em discussão.
-O que falta decidir é **como provisioná-lo** diante do bloqueio acima.
+Mantém-se **PostgreSQL** como banco de testes — isso nunca esteve em discussão, pelo
+motivo registrado na tabela acima.
+
+Para o provisionamento, a equipe escolheu a **Opção A: habilitar a virtualização na
+BIOS/UEFI e manter o Docker**, por três razões:
+
+1. Resolve o Docker para todo o projeto, não só para o banco.
+2. Libera a imagem `pgvector/pgvector:pg16`, já com a extensão exigida pela busca
+   híbrida das próximas features — evitando pagar essa dívida depois.
+3. Mantém o ambiente descartável: `docker compose down -v` devolve um banco limpo.
+
+O ambiente está declarado em [`docker-compose.yml`](../../docker-compose.yml), com os
+scripts de inicialização em [`scripts/db/init/`](../../scripts/db/init), que criam o
+banco de testes separado e habilitam `uuid-ossp` e `vector` nos dois bancos.
+
+### Como habilitar a virtualização
+
+Reiniciar a máquina e entrar no setup da BIOS/UEFI (geralmente `Del`, `F2`, `F10` ou
+`F12` na tela do fabricante). A opção costuma estar em *Advanced* ou *CPU
+Configuration*, com um destes nomes conforme o processador:
+
+- Intel: **Intel Virtualization Technology** ou **Intel VT-x**
+- AMD: **SVM Mode** ou **AMD-V**
+
+Habilitar, salvar e sair. Para conferir depois de reiniciar:
+
+```powershell
+systeminfo | Select-String "Virtualiza"
+```
+
+O esperado é `Virtualização Habilitada no Firmware: Sim`.
 
 ---
 
@@ -161,8 +190,8 @@ compatíveis — habilitar a virtualização depois não invalida uma instalaç�
 
 ## Itens de ação
 
-1. [ ] Decidir entre Opção A e Opção B.
+1. [x] Decidir entre Opção A e Opção B (escolhida: Opção A).
 2. [ ] Provisionar o PostgreSQL 16 e registrar a `DATABASE_URL` em `.env.example`.
 3. [ ] Implementar as fixtures assíncronas com rollback por teste (T006).
 4. [ ] Inicializar o Alembic e gerar a primeira migration (T007).
-5. [ ] Atualizar o status deste ADR para *Aceita* registrando a opção escolhida.
+5. [x] Atualizar o status deste ADR registrando a opção escolhida.
