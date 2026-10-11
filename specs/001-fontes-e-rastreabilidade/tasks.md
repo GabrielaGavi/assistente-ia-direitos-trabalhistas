@@ -10,7 +10,7 @@
 
 - [x] T001 Criar estrutura de diretórios do backend modular em `backend/app` (`sources`, `documents`, `citations`, `shared`)
 - [x] T002 [P] Configurar `backend/pyproject.toml` com dependências (`fastapi`, `pydantic`, `sqlalchemy[asyncio]`, `asyncpg`, `alembic`, `pytest`, `pytest-asyncio`, `httpx`)
-- [ ] T003 [P] Configurar gerador de UUID v7 e utilitários de data UTC em `backend/app/shared/uuid.py`
+- [x] T003 [P] Configurar gerador de UUID v7 e utilitários de data UTC em `backend/app/shared/uuid.py`
 
 ---
 
