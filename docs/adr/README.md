@@ -17,6 +17,7 @@ e evita que uma escolha deliberada seja desfeita por engano meses depois.
 | [0002](0002-datas-timezone-aware-em-utc.md) | Datas *timezone-aware* em UTC | Aceita | 2026-10-11 |
 | [0003](0003-gestao-de-ambiente-python-com-uv.md) | Gestão de ambiente Python com uv | Aceita | 2026-10-11 |
 | [0004](0004-banco-postgresql-para-testes-de-integracao.md) | Banco PostgreSQL para testes de integração | Proposta | 2026-10-11 |
+| [0005](0005-sqlalchemy-em-python-puro.md) | SQLAlchemy instalado em Python puro | Aceita | 2026-10-11 |
 
 ## Status possíveis
 
