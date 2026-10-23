@@ -51,7 +51,7 @@
 **Independent Test**: Cadastrar fonte Planalto, criar documento CLT v1, verificar idempotência com mesmo checksum, criar v2 e certificar que ao ativar a v2 a v1 torna-se inativa.
 
 ### Tests for User Story 2 (TDD - RED) 🔴
-- [ ] T015 [P] [US2] Escrever testes unitários de versionamento e unicidade de versão ativa em `backend/tests/unit/test_documents_versioning.py`
+- [x] T015 [P] [US2] Escrever testes unitários de versionamento e unicidade de versão ativa em `backend/tests/unit/test_documents_versioning.py`
 - [ ] T016 [P] [US2] Escrever testes de integração dos endpoints `POST /api/v1/sources` e `POST /api/v1/documents` em `backend/tests/integration/test_sources_documents_api.py`
 
 ### Implementation for User Story 2 (GREEN & REFACTOR) 🟢
@@ -60,7 +60,7 @@
 - [ ] T019 [P] [US2] Implementar schemas Pydantic para fontes (`SourceCreate`, `SourceResponse`) em `backend/app/sources/schemas.py`
 - [ ] T020 [P] [US2] Implementar schemas Pydantic para documentos (`DocumentCreate`, `DocumentResponse`) em `backend/app/documents/schemas.py`
 - [ ] T021 [US2] Implementar `SourceRepository` e `SourceService` em `backend/app/sources/repository.py` e `backend/app/sources/service.py`
-- [ ] T022 [US2] Implementar `DocumentRepository` e `DocumentService` com lógica de transição de versão em `backend/app/documents/repository.py` e `backend/app/documents/service.py`
+- [x] T022 [US2] Implementar `DocumentRepository` e `DocumentService` com lógica de transição de versão em `backend/app/documents/repository.py` e `backend/app/documents/service.py`
 - [ ] T023 [US2] Implementar routers de fontes e documentos em `backend/app/sources/router.py` e `backend/app/documents/router.py`
 
 ---
