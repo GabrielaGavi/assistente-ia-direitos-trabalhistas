@@ -25,9 +25,7 @@ class TestCitationService(IsolatedAsyncioTestCase):
         self.citation_id = uuid4()
         source_id = uuid4()
         self.evidence = SimpleNamespace(
-            citation=SimpleNamespace(
-                id=self.citation_id, citation_number=1, original_quote=TRECHO
-            ),
+            citation=SimpleNamespace(id=self.citation_id, citation_number=1, original_quote=TRECHO),
             chunk=SimpleNamespace(
                 id=uuid4(),
                 document_id=uuid4(),

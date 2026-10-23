@@ -40,7 +40,7 @@
 - [x] T011 [P] [US1] Implementar schemas Pydantic `CitationResponse` e `CitationDetailResponse` em `backend/app/citations/schemas.py`
 - [ ] T012 [US1] Implementar repositório `CitationRepository` em `backend/app/citations/repository.py`
 - [ ] T013 [US1] Implementar serviço `CitationService` com resolução de links em `backend/app/citations/service.py`
-- [ ] T014 [US1] Implementar router FastAPI de citações em `backend/app/citations/router.py`
+- [x] T014 [US1] Implementar router FastAPI de citações em `backend/app/citations/router.py`
 
 ---
 

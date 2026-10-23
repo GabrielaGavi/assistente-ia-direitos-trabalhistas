@@ -4,8 +4,7 @@ Requisitos: US1, FR-007 e preservacao de evidencia historica da feature 001.
 O app real e a dependencia de banco sao usados com a sessao isolada da suite;
 nao ha mocks de repositorio ou implementacao do endpoint neste teste.
 
-Enquanto T029 nao criar app.main, a coleta falha com ModuleNotFoundError.
-Depois disso, T012-T014 devem tornar os cenarios verdes. Executar apenas em
+T012-T014 tornam estes cenarios verdes. Executar apenas em
 PostgreSQL descartavel: a fixture global da suite recria as tabelas.
 """
 
@@ -40,9 +39,7 @@ async def client(session: AsyncSession) -> AsyncIterator[AsyncClient]:
     overrides_anteriores = app.dependency_overrides.copy()
     app.dependency_overrides[get_session] = sessao_de_teste
     try:
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as cliente:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as cliente:
             yield cliente
     finally:
         app.dependency_overrides.clear()
@@ -178,3 +175,30 @@ async def test_retorna_422_para_identificador_invalido(client: AsyncClient) -> N
     resposta = await client.get("/api/v1/citations/nao-e-um-uuid")
 
     assert resposta.status_code == 422, resposta.text
+
+
+async def test_retorna_500_sem_expor_link_invalido(
+    client: AsyncClient,
+    session: AsyncSession,
+    evidencia: tuple[Source, Document, DocumentChunk, Citation],
+) -> None:
+    _, _, chunk, citacao = evidencia
+    trecho = await session.get(DocumentChunk, chunk.id)
+    assert trecho is not None
+    trecho.official_url = "file:///evidencia-interna"
+    await session.flush()
+
+    resposta = await client.get(f"/api/v1/citations/{citacao.id}")
+
+    assert resposta.status_code == 500, resposta.text
+    assert resposta.json() == {"detail": "A citacao possui um link oficial invalido."}
+
+
+async def test_openapi_documenta_consulta_e_erros(client: AsyncClient) -> None:
+    resposta = await client.get("/openapi.json")
+    assert resposta.status_code == 200
+    operacao = resposta.json()["paths"]["/api/v1/citations/{id}"]["get"]
+    assert {"200", "404", "422", "500"} <= operacao["responses"].keys()
+    assert operacao["responses"]["200"]["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/CitationDetailResponse"
+    }
