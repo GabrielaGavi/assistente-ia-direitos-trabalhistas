@@ -64,9 +64,7 @@ async def citacao(session: AsyncSession) -> Citation:
     return registro
 
 
-async def test_busca_evidencia_completa_por_id(
-    session: AsyncSession, citacao: Citation
-) -> None:
+async def test_busca_evidencia_completa_por_id(session: AsyncSession, citacao: Citation) -> None:
     evidencia = await CitationRepository(session).get_by_id(citacao.id)
 
     assert evidencia is not None
@@ -88,16 +86,12 @@ async def test_busca_evidencia_completa_por_id(
     assert evidencia.source.short_name == "Planalto"
 
 
-async def test_retorna_none_para_id_inexistente(
-    session: AsyncSession, citacao: Citation
-) -> None:
+async def test_retorna_none_para_id_inexistente(session: AsyncSession, citacao: Citation) -> None:
     # Ha dados no banco: uma consulta sem WHERE nao pode passar neste teste.
     assert await CitationRepository(session).get_by_id(uuid7()) is None
 
 
-async def test_distingue_citacoes_do_mesmo_chunk(
-    session: AsyncSession, citacao: Citation
-) -> None:
+async def test_distingue_citacoes_do_mesmo_chunk(session: AsyncSession, citacao: Citation) -> None:
     outra = Citation(
         message_id=uuid7(),
         chunk_id=citacao.chunk_id,
