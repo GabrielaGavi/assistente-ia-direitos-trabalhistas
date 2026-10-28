@@ -49,6 +49,10 @@ local_storage/
 .DS_Store
 Thumbs.db
 
+# Local design references (kept outside version control)
+/ai-senior-web-designer-agent-v1/
+/design-system.md
+
 # Python virtual env (uv)
 .venv/
 .venv*/

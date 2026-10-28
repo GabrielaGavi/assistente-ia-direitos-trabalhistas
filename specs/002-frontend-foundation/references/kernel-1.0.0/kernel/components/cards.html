@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cards and media · KERNEL</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<header class="kn-nav">
+  <div class="kn-container kn-nav__inner">
+    <a class="kn-nav__brand" href="../index.html"><svg class="kn-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="0.5" y="0.5" width="23" height="23" rx="6" fill="#08090A" stroke="#383B3F"/><path d="M8 6v12" stroke="#F7F8F8" stroke-width="2.4"/><path d="M17 6l-6 6 6 6" fill="none" stroke="#E4F222" stroke-width="2.4"/></svg>KERNEL</a>
+    <nav class="kn-nav__links" aria-label="Kit"><a href="../index.html">Overview</a><a href="../theme.html">Theme</a><a href="../components/index.html" aria-current="page">Components</a><a href="../templates/landing/index.html">Landing</a><a href="../templates/deck/index.html">Deck</a></nav>
+  </div>
+</header>
+<main class="kn-container">
+  <div class="doc-head">
+    <p class="kn-eyebrow">components/cards.html</p>
+    <h1 class="kn-h1">Cards and media</h1>
+    <p class="kn-lede">Carbon surfaces with a 1px hairline and 12px corners. No glow, no drop shadow on cards that sit on the page.</p>
+  </div>
+  <section class="doc-spec">
+    <p class="doc-spec__label">Feature cards</p>
+    <p class="kn-small kn-muted">Mono kicker, Medium title, Fog text. Three across on desktop, one on mobile.</p>
+    <div class="doc-stage">
+<div class="kn-grid kn-grid--3"><div class="kn-card"><p class="kn-card__kicker">KRN-201</p><p class="kn-card__title">Triage in one pass</p><p class="kn-card__text">New reports land in one queue with owner, priority and duplicate hints already filled.</p><a class="kn-link kn-small" href="#">How triage works</a></div><div class="kn-card"><p class="kn-card__kicker">KRN-202</p><p class="kn-card__title">Deploys linked to issues</p><p class="kn-card__text">Every merge shows which issues it closes and which environment it reached.</p><a class="kn-link kn-small" href="#">See the deploy log</a></div><div class="kn-card"><p class="kn-card__kicker">KRN-203</p><p class="kn-card__title">Alerts with an owner</p><p class="kn-card__text">Error spikes open an issue for the team that shipped the change.</p><a class="kn-link kn-small" href="#">Read about alerts</a></div></div>
+    </div>
+  </section>
+  <section class="doc-spec">
+    <p class="doc-spec__label">Media card and capsule</p>
+    <p class="kn-small kn-muted">Photos sit inside the same 12px frame. The capsule floats over a photo with a blurred Void fill.</p>
+    <div class="doc-stage">
+<div class="kn-grid kn-grid--2"><article class="kn-card kn-card--media"><div class="kn-media kn-ratio-16x9"><img src="../assets/imagery/02-material.webp" alt="Black circuit board macro with one lime LED"></div><div class="kn-card__body"><p class="kn-card__kicker">Changelog · Oct 14</p><p class="kn-card__title">Edge builds in every region</p><p class="kn-card__text">Builds now run next to the region they deploy to.</p></div></article><div class="kn-media kn-ratio-16x9" style="position:relative"><img src="../assets/imagery/03-object-detail.webp" alt="Black keyboard with one lime keycap"><div style="position:absolute;left:16px;right:16px;bottom:16px;display:flex;justify-content:center"><span class="kn-capsule"><span class="kn-capsule__dot"></span>Build passed in 42 s<a class="kn-btn kn-btn--primary kn-btn--sm" href="#">Deploy</a></span></div></div></div>
+    </div>
+  </section>
+  <section class="doc-spec">
+    <p class="doc-spec__label">Metric cards</p>
+    <p class="kn-small kn-muted">One big Medium number, a Fog caption, no chart chrome.</p>
+    <div class="doc-stage">
+<div class="kn-grid kn-grid--3"><div class="kn-card kn-card--raised"><p class="kn-metric">42 s</p><p class="kn-card__text">Median build time</p></div><div class="kn-card kn-card--raised"><p class="kn-metric">99.98%</p><p class="kn-card__text">Deploy success rate, last 30 days</p></div><div class="kn-card kn-card--raised"><p class="kn-metric">3.1 h</p><p class="kn-card__text">Median time from report to fix</p></div></div>
+    </div>
+  </section>
+</main>
+<footer class="kn-container doc-foot">
+  <p class="kn-legal">KERNEL design system 1.0.0 · Made by HorizonX · Product names, prices, metrics and specifications in this kit are fictional placeholders.</p>
+</footer>
+</body>
+</html>

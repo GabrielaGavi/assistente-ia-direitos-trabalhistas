@@ -6,6 +6,7 @@ from re import fullmatch
 from typing import Protocol
 from uuid import UUID
 
+from app.documents.chunk_models import DocumentChunk
 from app.documents.models import Document, DocumentStatus
 from app.shared.audit.models import AuditAction, AuditLog
 
@@ -18,6 +19,33 @@ class DocumentStore(Protocol):
     async def add(self, document: Document) -> None: ...
     async def save(self, document: Document) -> None: ...
     async def record_audit(self, log: AuditLog) -> None: ...
+    async def list_documents(
+        self,
+        *,
+        source_id: UUID | None,
+        is_active: bool | None,
+        offset: int,
+        limit: int,
+    ) -> tuple[list[Document], int]: ...
+    async def list_chunks(
+        self,
+        document_id: UUID,
+        *,
+        article: str | None,
+        section: str | None,
+        offset: int,
+        limit: int,
+    ) -> tuple[list[DocumentChunk], int]: ...
+
+
+def validate_document_metadata(title: str, logical_name: str, checksum_sha256: str) -> None:
+    """Regras originais de cadastro compartilhadas pelo service e pelo schema."""
+    if not title.strip() or len(title) > 255:
+        raise ValueError("Titulo deve conter entre 1 e 255 caracteres.")
+    if not logical_name.strip() or len(logical_name) > 100:
+        raise ValueError("Nome logico deve conter entre 1 e 100 caracteres.")
+    if fullmatch(r"[0-9a-fA-F]{64}", checksum_sha256) is None:
+        raise ValueError("Checksum deve ser SHA-256 hexadecimal de 64 caracteres.")
 
 
 class DocumentNotFoundError(LookupError):
@@ -42,12 +70,7 @@ class DocumentService:
         published_at: datetime | None = None,
         actor_id: UUID | None = None,
     ) -> Document:
-        if not title.strip() or len(title) > 255:
-            raise ValueError("Titulo deve conter entre 1 e 255 caracteres.")
-        if not logical_name.strip() or len(logical_name) > 100:
-            raise ValueError("Nome logico deve conter entre 1 e 100 caracteres.")
-        if fullmatch(r"[0-9a-fA-F]{64}", checksum_sha256) is None:
-            raise ValueError("Checksum deve ser SHA-256 hexadecimal de 64 caracteres.")
+        validate_document_metadata(title, logical_name, checksum_sha256)
         checksum_sha256 = checksum_sha256.lower()
         async with self._repository.transaction():
             await self._repository.lock_source(source_id)
@@ -68,6 +91,41 @@ class DocumentService:
             await self._repository.add(doc)
             await self._audit(doc, AuditAction.DOCUMENT_UPLOADED, None, actor_id)
             return doc
+
+    async def list_documents(
+        self,
+        *,
+        source_id: UUID | None = None,
+        is_active: bool | None = None,
+        offset: int = 0,
+        limit: int = 20,
+    ) -> tuple[list[Document], int]:
+        return await self._repository.list_documents(
+            source_id=source_id,
+            is_active=is_active,
+            offset=offset,
+            limit=limit,
+        )
+
+    async def list_chunks(
+        self,
+        document_id: UUID,
+        *,
+        article: str | None = None,
+        section: str | None = None,
+        offset: int = 0,
+        limit: int = 50,
+    ) -> tuple[list[DocumentChunk], int]:
+        # Distingue documento inexistente de documento ainda sem chunks.
+        if await self._repository.get_by_id(document_id) is None:
+            raise DocumentNotFoundError("Documento nao encontrado.")
+        return await self._repository.list_chunks(
+            document_id,
+            article=article,
+            section=section,
+            offset=offset,
+            limit=limit,
+        )
 
     async def activate(self, document_id: UUID, *, actor_id: UUID | None = None) -> Document:
         async with self._repository.transaction():

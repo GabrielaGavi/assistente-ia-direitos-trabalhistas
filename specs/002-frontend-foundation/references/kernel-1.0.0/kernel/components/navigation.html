@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Navigation · KERNEL</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<header class="kn-nav">
+  <div class="kn-container kn-nav__inner">
+    <a class="kn-nav__brand" href="../index.html"><svg class="kn-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="0.5" y="0.5" width="23" height="23" rx="6" fill="#08090A" stroke="#383B3F"/><path d="M8 6v12" stroke="#F7F8F8" stroke-width="2.4"/><path d="M17 6l-6 6 6 6" fill="none" stroke="#E4F222" stroke-width="2.4"/></svg>KERNEL</a>
+    <nav class="kn-nav__links" aria-label="Kit"><a href="../index.html">Overview</a><a href="../theme.html">Theme</a><a href="../components/index.html" aria-current="page">Components</a><a href="../templates/landing/index.html">Landing</a><a href="../templates/deck/index.html">Deck</a></nav>
+  </div>
+</header>
+<main class="kn-container">
+  <div class="doc-head">
+    <p class="kn-eyebrow">components/navigation.html</p>
+    <h1 class="kn-h1">Navigation</h1>
+    <p class="kn-lede">A translucent Void bar with a hairline bottom edge, Fog links that turn Paper on hover, and the lime action at the far right.</p>
+  </div>
+  <section class="doc-spec">
+    <p class="doc-spec__label">Top bar</p>
+    <p class="kn-small kn-muted">Links are never lime. The single lime button is the sign-up or the deploy.</p>
+    <div class="doc-stage">
+<header class="kn-nav" style="position:relative;border-radius:var(--radius-surface);border:1px solid var(--color-divider)"><div class="kn-nav__inner" style="padding-inline:16px"><a class="kn-nav__brand" href="#"><svg class="kn-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="0.5" y="0.5" width="23" height="23" rx="6" fill="#08090A" stroke="#383B3F"/><path d="M8 6v12" stroke="#F7F8F8" stroke-width="2.4"/><path d="M17 6l-6 6 6 6" fill="none" stroke="#E4F222" stroke-width="2.4"/></svg>Ferrule</a><nav class="kn-nav__links" aria-label="Product"><a href="#" aria-current="page">Product</a><a href="#">Changelog</a><a href="#">Docs</a><a href="#">Pricing</a></nav><div class="kn-nav__actions"><a class="kn-btn kn-btn--quiet kn-btn--sm" href="#">Log in</a><a class="kn-btn kn-btn--primary kn-btn--sm" href="#">Start building</a></div></div></header>
+    </div>
+  </section>
+  <section class="doc-spec">
+    <p class="doc-spec__label">App sidebar, tabs and breadcrumbs</p>
+    <p class="kn-small kn-muted">Sidebar items are 30px rows; the current one gets a Graphite fill.</p>
+    <div class="doc-stage">
+<div class="kn-grid" style="grid-template-columns:220px 1fr;align-items:start"><nav class="kn-card" style="padding:8px;gap:0" aria-label="Workspace"><p class="kn-side-label">Workspace</p><a class="kn-side-item" href="#" aria-current="page">My issues <span class="kn-id">12</span></a><a class="kn-side-item" href="#">Inbox <span class="kn-id">3</span></a><a class="kn-side-item" href="#">Deploys</a><p class="kn-side-label">Teams</p><a class="kn-side-item" href="#">Platform</a><a class="kn-side-item" href="#">Payments API</a></nav><div class="kn-stack"><nav class="kn-crumbs" aria-label="Breadcrumb"><a href="#">Platform</a><span>/</span><a href="#">Cycle 42</a><span>/</span><span aria-current="page">KRN-1024</span></nav><nav class="kn-tabs" aria-label="Views"><a href="#" aria-current="page">Active</a><a href="#">Backlog</a><a href="#">Done</a></nav><nav class="kn-pager" aria-label="Pages"><a href="#">‹</a><a href="#" aria-current="page">1</a><a href="#">2</a><a href="#">3</a><a href="#">›</a></nav></div></div>
+    </div>
+  </section>
+</main>
+<footer class="kn-container doc-foot">
+  <p class="kn-legal">KERNEL design system 1.0.0 · Made by HorizonX · Product names, prices, metrics and specifications in this kit are fictional placeholders.</p>
+</footer>
+</body>
+</html>

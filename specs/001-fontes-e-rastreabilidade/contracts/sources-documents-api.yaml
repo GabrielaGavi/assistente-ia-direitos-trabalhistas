@@ -165,6 +165,11 @@ paths:
           in: query
           schema:
             type: string
+        - name: section
+          in: query
+          description: Filtro exato pela secao ou capitulo, conforme US3.
+          schema:
+            type: string
         - name: offset
           in: query
           schema:
