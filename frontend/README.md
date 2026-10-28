@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
+﻿# Frontend — Direito em claro
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install --frozen-lockfile
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra http://localhost:3000. Para validar uma versão de produção:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm lint
+pnpm exec tsc --noEmit
+pnpm build
+pnpm start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+A rota `/` é renderizada por React/Next.js. As 11 seções da landing, navegação
+e rodapé estão em `src/components/landing/`. A conversão preserva a estrutura,
+as classes, as medidas e os breakpoints do visual aprovado. `landing.css`
+contém os estilos e fontes; `styles.ts` reúne os estilos inline compartilhados.
 
-## Learn More
+Abas, carrossel, seletor de preços, menu e perguntas expansíveis usam estado
+React. As mãos usam `landing-hands.tsx`, com Three.js importado do pacote:
+mantêm a textura, o brilho e a animação rígida aprovados, sem hover.
 
-To learn more about Next.js, take a look at the following resources:
+Imagens, vídeos e fontes da landing estão em `public/assets/landing/`.
+`asset-manifest.json` registra a origem de cada recurso apenas para referência.
+O desenvolvimento e o build não leem HTML nem a pasta `specs/.../references`;
+essa pasta pode ser removida sem afetar a aplicação. Não existe etapa de
+geração da landing nem cópia de bibliotecas para `public/vendor`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+O layout compartilhado usa `next/font/local` com as mesmas fontes Geist do chat,
+salvas em `src/app/fonts/`. Todas as fontes necessárias estão no repositório;
+o build não precisa acessar Google Fonts nem Framer.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+A rota `/chat` mantém a interface existente. Esta migração da landing não
+implementa os endpoints de conversas previstos na especificação.

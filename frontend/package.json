@@ -3,10 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "prepare:landing": "node scripts/prepare-landing.mjs",
-    "predev": "pnpm prepare:landing",
     "dev": "next dev",
-    "prebuild": "pnpm prepare:landing",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
