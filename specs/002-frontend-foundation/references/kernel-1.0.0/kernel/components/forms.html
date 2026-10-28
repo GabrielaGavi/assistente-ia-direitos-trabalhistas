@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forms · KERNEL</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<header class="kn-nav">
+  <div class="kn-container kn-nav__inner">
+    <a class="kn-nav__brand" href="../index.html"><svg class="kn-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="0.5" y="0.5" width="23" height="23" rx="6" fill="#08090A" stroke="#383B3F"/><path d="M8 6v12" stroke="#F7F8F8" stroke-width="2.4"/><path d="M17 6l-6 6 6 6" fill="none" stroke="#E4F222" stroke-width="2.4"/></svg>KERNEL</a>
+    <nav class="kn-nav__links" aria-label="Kit"><a href="../index.html">Overview</a><a href="../theme.html">Theme</a><a href="../components/index.html" aria-current="page">Components</a><a href="../templates/landing/index.html">Landing</a><a href="../templates/deck/index.html">Deck</a></nav>
+  </div>
+</header>
+<main class="kn-container">
+  <div class="doc-head">
+    <p class="kn-eyebrow">components/forms.html</p>
+    <h1 class="kn-h1">Forms</h1>
+    <p class="kn-lede">Inputs sit on Console with a Wire outline and 10px corners. Focus brightens the outline and adds a faint lime halo.</p>
+  </div>
+  <section class="doc-spec">
+    <p class="doc-spec__label">Command field</p>
+    <p class="kn-small kn-muted">The search pattern of every dev tool: icon, placeholder, key hint.</p>
+    <div class="doc-stage">
+<div class="kn-command" style="max-width:420px"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><input class="kn-input" type="search" placeholder="Search issues" aria-label="Search issues"><span class="kn-kbd">⌘K</span></div>
+    </div>
+  </section>
+  <section class="doc-spec">
+    <p class="doc-spec__label">Fields</p>
+    <p class="kn-small kn-muted">Labels above, help text below. Errors use the Error color for the outline and the message only.</p>
+    <div class="doc-stage">
+<form class="kn-grid kn-grid--2" onsubmit="return false"><div class="kn-field"><label class="kn-label" for="f-title">Issue title</label><input class="kn-input" id="f-title" value="Webhook retries skip the last attempt"></div><div class="kn-field"><label class="kn-label" for="f-team">Team</label><select class="kn-select" id="f-team"><option>Platform</option><option>Payments API</option><option>Mobile</option></select></div><div class="kn-field"><label class="kn-label" for="f-branch">Branch name</label><input class="kn-input kn-id" id="f-branch" value="fix/krn-1024-webhook-retries"></div><div class="kn-field"><label class="kn-label" for="f-mail">Work email</label><input class="kn-input" id="f-mail" type="email" value="sam@" aria-invalid="true" aria-describedby="f-mail-err"><span class="kn-help kn-help--error" id="f-mail-err">Enter a full email address.</span></div><div class="kn-field" style="grid-column:1/-1"><label class="kn-label" for="f-desc">Description</label><textarea class="kn-textarea" id="f-desc">Retries stop after the fourth attempt instead of the fifth.</textarea><span class="kn-help">Markdown supported.</span></div></form>
+    </div>
+  </section>
+  <section class="doc-spec">
+    <p class="doc-spec__label">Checks and switches</p>
+    <p class="kn-small kn-muted">Checkboxes take the lime accent color; switches turn Branch Violet when on.</p>
+    <div class="doc-stage">
+<div class="kn-row" style="gap:24px"><label class="kn-check"><input type="checkbox" checked> Close issues on merge</label><label class="kn-check"><input type="checkbox"> Notify the on-call engineer</label><label class="kn-switch"><input type="checkbox" role="switch" checked> Preview deploys</label><label class="kn-switch"><input type="checkbox" role="switch"> Auto-assign</label></div>
+    </div>
+  </section>
+</main>
+<footer class="kn-container doc-foot">
+  <p class="kn-legal">KERNEL design system 1.0.0 · Made by HorizonX · Product names, prices, metrics and specifications in this kit are fictional placeholders.</p>
+</footer>
+</body>
+</html>
