@@ -3,6 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.anonymous.router import router as anonymous_router
 from app.auth.router import router as auth_router
 from app.citations.router import router as citations_router
 from app.conversations.router import router as conversations_router
@@ -23,6 +24,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(anonymous_router)
 app.include_router(citations_router)
 app.include_router(sources_router)
 app.include_router(documents_router)

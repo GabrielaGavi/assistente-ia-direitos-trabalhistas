@@ -40,7 +40,7 @@ class ConversationListResponse(BaseModel):
 
 
 class MessageCreate(BaseModel):
-    content: str = Field(min_length=1, max_length=4000)
+    content: str = Field(min_length=1, max_length=4000, pattern=r"\S")
 
 
 class MessageResponse(BaseModel):

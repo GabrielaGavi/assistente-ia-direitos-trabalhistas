@@ -51,6 +51,9 @@ class ConversationStore(Protocol):
     async def list_conversations(
         self, user_id: UUID, *, offset: int, limit: int
     ) -> tuple[list[Conversation], int]: ...
+    async def list_anonymous_conversations(
+        self, session_id: UUID, *, offset: int, limit: int
+    ) -> tuple[list[Conversation], int]: ...
     async def add_message(self, message: Message) -> None: ...
     async def list_messages(self, conversation_id: UUID) -> list[Message]: ...
     async def add_citation(self, citation: Citation) -> None: ...
@@ -58,12 +61,20 @@ class ConversationStore(Protocol):
 
 
 class ConversationService:
-    def __init__(self, repository: ConversationStore, rag_service: RagAnswerer) -> None:
+    def __init__(
+        self, repository: ConversationStore, rag_service: RagAnswerer | None = None
+    ) -> None:
         self._repository = repository
         self._rag_service = rag_service
 
-    async def create(self, *, user_id: UUID, title: str) -> Conversation:
-        conversation = Conversation(user_id=user_id, title=title)
+    async def create(
+        self, *, user_id: UUID | None, title: str, anonymous_session_id: UUID | None = None
+    ) -> Conversation:
+        if (user_id is None) == (anonymous_session_id is None):
+            raise ValueError("A conversa precisa de exatamente um proprietario.")
+        conversation = Conversation(
+            user_id=user_id, anonymous_session_id=anonymous_session_id, title=title
+        )
         async with self._repository.transaction():
             await self._repository.add_conversation(conversation)
         return conversation
@@ -73,8 +84,13 @@ class ConversationService:
     ) -> tuple[list[Conversation], int]:
         return await self._repository.list_conversations(user_id, offset=offset, limit=limit)
 
-    async def get_detail(self, conversation_id: UUID, user_id: UUID) -> ConversationDetailResponse:
-        conversation = await self._owned_conversation(conversation_id, user_id)
+    async def get_detail(
+        self,
+        conversation_id: UUID,
+        user_id: UUID | None,
+        anonymous_session_id: UUID | None = None,
+    ) -> ConversationDetailResponse:
+        conversation = await self.ensure_owner(conversation_id, user_id, anonymous_session_id)
         mensagens = await self._repository.list_messages(conversation_id)
         citacoes_por_mensagem = await self._citacoes_por_mensagem(mensagens)
         return ConversationDetailResponse(
@@ -89,9 +105,15 @@ class ConversationService:
         )
 
     async def send_message(
-        self, conversation_id: UUID, user_id: UUID, content: str
+        self,
+        conversation_id: UUID,
+        user_id: UUID | None,
+        content: str,
+        anonymous_session_id: UUID | None = None,
     ) -> MessageResponse:
-        await self._owned_conversation(conversation_id, user_id)
+        await self.ensure_owner(conversation_id, user_id, anonymous_session_id)
+        if self._rag_service is None:
+            raise RuntimeError("Provider de RAG nao configurado.")
 
         async with self._repository.transaction():
             await self._repository.add_message(
@@ -138,15 +160,26 @@ class ConversationService:
 
         return self._para_message_response(assistant_message, citacoes)
 
-    async def _owned_conversation(self, conversation_id: UUID, user_id: UUID) -> Conversation:
+    async def ensure_owner(
+        self,
+        conversation_id: UUID,
+        user_id: UUID | None,
+        anonymous_session_id: UUID | None = None,
+    ) -> Conversation:
         conversation = await self._repository.get_conversation(conversation_id)
-        if conversation is None or conversation.user_id != user_id:
+        owned = conversation is not None and (
+            (user_id is not None and conversation.user_id == user_id)
+            or (
+                user_id is None
+                and anonymous_session_id is not None
+                and conversation.anonymous_session_id == anonymous_session_id
+            )
+        )
+        if not owned:
             raise ConversationNotFoundError(f"Conversa {conversation_id} nao encontrada.")
         return conversation
 
-    async def _citacoes_por_mensagem(
-        self, mensagens: list[Message]
-    ) -> dict[UUID, list[Citation]]:
+    async def _citacoes_por_mensagem(self, mensagens: list[Message]) -> dict[UUID, list[Citation]]:
         todas = await self._repository.list_citations_by_message_ids(
             [mensagem.id for mensagem in mensagens]
         )
