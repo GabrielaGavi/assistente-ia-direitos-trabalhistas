@@ -1,0 +1,9 @@
+.dialog { --bg: #10110f; --ink: #f6f4ed; --muted: #a3a69a; --border: #34372e; --accent: #fffe54; width: min(560px,calc(100% - 32px)); max-height: calc(100dvh - 40px); padding: 0; margin: auto; border: 1px solid var(--border); background: var(--bg); color: var(--ink); font-family: var(--font-geist-sans),Arial,sans-serif; }
+.dialog::backdrop { background: #000b; backdrop-filter: blur(8px); }
+.panel { padding: 12px 32px 16px; position: relative; }
+.close { position: absolute; top: 14px; right: 16px; display: grid; place-items: center; width: 32px; height: 32px; background: transparent; border: 1px solid var(--border); color: var(--ink); font-size: 24px; cursor: pointer; }
+.account { display: flex; align-items: center; gap: 12px; flex-shrink: 0; font: 12px var(--font-geist-sans),Arial,sans-serif; }
+.account > span:first-child { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #a3a69a; }
+.account button:focus-visible, .close:focus-visible { outline: 2px solid #fffe54; outline-offset: 3px; }
+.error { color: #ffbd9b; font-size: 12px; line-height: 1.6; }
+@media(max-width:600px) { .panel { padding: 12px 20px; } .account > span:first-child { display: none; } }

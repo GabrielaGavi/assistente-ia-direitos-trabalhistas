@@ -1,0 +1,7 @@
+.action { box-sizing: border-box; display: inline-flex; flex-shrink: 0; justify-content: space-between; align-items: center; gap: 16px; height: 42px; min-height: 42px; padding: 0 16px; border: 1px solid #34372e; border-radius: 0; background: transparent; color: #f6f4ed; font: 600 12px/1 var(--font-geist-sans),Arial,sans-serif; text-decoration: none; white-space: nowrap; cursor: pointer; transition: color .2s,border-color .2s; }
+.action:hover { border-color: #fffe54; color: #fffe54; }
+.action:focus-visible { outline: 2px solid #fffe54; outline-offset: 3px; }
+.action:disabled { opacity: .5; cursor: wait; }
+.primary { border-color: #fffe54; background: #fffe54; color: #10110f; }
+.primary:hover { color: #10110f; background: #efee48; }
+@media(max-width:600px) { .action { height: 40px; min-height: 40px; padding: 0 12px; gap: 10px; font-size: 11px; } }

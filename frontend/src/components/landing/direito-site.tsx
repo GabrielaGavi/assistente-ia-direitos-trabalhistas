@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { AccountButton } from "../session-provider";
+import { BrandMark } from "../brand-mark";
+import headerAction from "../header-action.module.css";
 import { ContextGraph } from "./context-graph";
 import { KnowledgeSphere } from "./graph-effects";
 import { ProjectArchitecture } from "./project-architecture";
@@ -10,9 +13,9 @@ import styles from "./direito-site.module.css";
 export function DireitoSite() {
   return <main className={styles.page}>
     <header className={styles.header}>
-      <Link href="#inicio" className={styles.brand}><span className={styles.brandMark} aria-hidden="true"><i /><i /><i /><i /></span>Direito em Claro</Link>
+      <Link href="#inicio" className={styles.brand}><BrandMark className={styles.brandMark} />Direito em Claro</Link>
       <nav aria-label="Navegação principal"><a href="#contexto">Conhecimento</a><a href="#arquitetura">Arquitetura</a><a href="#temas">Temas</a><a href="#duvidas">Dúvidas</a></nav>
-      <Link href="/chat" className={styles.headerCta}>Abrir assistente <span aria-hidden="true">↗</span></Link>
+      <div className={styles.headerActions}><AccountButton /><Link href="/chat" className={`${headerAction.action} ${headerAction.primary}`}>Abrir assistente <span aria-hidden="true">↗</span></Link></div>
     </header>
     <ContextGraph />
     <section className={styles.knowledge} id="contexto">
