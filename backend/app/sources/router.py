@@ -6,6 +6,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth.dependencies import require_admin
+from app.auth.models import User
 from app.shared.database import get_session
 from app.sources.repository import SourceRepository
 from app.sources.schemas import SourceCreate, SourceListResponse, SourceResponse
@@ -24,6 +26,7 @@ router = APIRouter(prefix="/api/v1/sources", tags=["sources"])
 async def create_source(
     payload: SourceCreate,
     session: Annotated[AsyncSession, Depends(get_session)],
+    _admin: Annotated[User, Depends(require_admin)],
 ) -> SourceResponse:
     service = SourceService(SourceRepository(session))
     try:

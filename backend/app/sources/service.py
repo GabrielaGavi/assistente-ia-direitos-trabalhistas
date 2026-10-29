@@ -5,7 +5,6 @@ from typing import Protocol
 from uuid import UUID
 
 from app.sources.models import Source
-from app.sources.schemas import SourceCreate, SourceResponse
 
 
 class SourceNotFoundError(LookupError):
@@ -20,23 +19,11 @@ class DuplicateSourceError(ValueError):
     """A sigla ja identifica outra fonte oficial."""
 
 
-class SourceAlreadyExistsError(ValueError):
-    def __init__(self, short_name: str) -> None:
-        self.short_name = short_name
-        super().__init__(f"Fonte com a sigla '{short_name}' ja esta cadastrada.")
-
-
 class SourceStore(Protocol):
     def transaction(self) -> AbstractAsyncContextManager[None]: ...
     async def add(self, source: Source) -> None: ...
     async def get_by_id(self, source_id: UUID) -> Source | None: ...
     async def list_sources(self, *, offset: int, limit: int) -> tuple[list[Source], int]: ...
-    async def get_by_short_name(self, short_name: str) -> Source | None: ...
-    async def list_all(self) -> list[Source]: ...
-    async def create(self, source: Source) -> Source: ...
-
-
-SourceRepositoryProtocol = SourceStore
 
 
 class SourceService:
@@ -66,17 +53,3 @@ class SourceService:
 
     async def list_sources(self, *, offset: int = 0, limit: int = 20) -> tuple[list[Source], int]:
         return await self._repository.list_sources(offset=offset, limit=limit)
-
-    async def get_by_id(self, source_id: UUID) -> SourceResponse:
-        return SourceResponse.model_validate(await self.get_source(source_id))
-
-    async def list_all(self) -> list[SourceResponse]:
-        return [
-            SourceResponse.model_validate(source) for source in await self._repository.list_all()
-        ]
-
-    async def create(self, data: SourceCreate) -> SourceResponse:
-        if await self._repository.get_by_short_name(data.short_name) is not None:
-            raise SourceAlreadyExistsError(data.short_name)
-        source = Source(**data.model_dump())
-        return SourceResponse.model_validate(await self._repository.create(source))

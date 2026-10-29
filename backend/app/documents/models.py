@@ -61,6 +61,12 @@ class Document(Base, UUIDPrimaryKeyMixin, TimestampMixin, UpdatedAtMixin):
         String(20), nullable=False, default=DocumentStatus.PROCESSING
     )
 
+    # Caminho do arquivo original (PDF/etc.) no Supabase Storage, relativo ao
+    # bucket -- nunca uma URL publica: o bucket pode ser privado e exigir URL
+    # assinada na leitura. Nulo para documentos sem arquivo binario de origem
+    # (ex.: cadastrados so com os trechos ja estruturados).
+    original_file_path: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+
     __table_args__ = (
         UniqueConstraint(
             "source_id",

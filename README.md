@@ -6,7 +6,7 @@
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
-![Llama 3.3 70B](https://img.shields.io/badge/Llama_3.3_70B-GroqCloud-f55036?style=for-the-badge)
+![Groq](https://img.shields.io/badge/LLM-Groq-f55036?style=for-the-badge)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 ![ODS 8](https://img.shields.io/badge/ODS_8-Trabalho_Decente-A21942?style=for-the-badge)
 
@@ -71,9 +71,9 @@ flowchart TD
     
     subgraph Pipeline RAG
         C -->|Gera embedding da pergunta| D[Sentence-Transformers]
-        D -->|Busca vetorial por similaridade| E[(Vector DB / ChromaDB ou pgvector)]
+        D -->|Busca vetorial por similaridade| E[(PostgreSQL + pgvector / Supabase)]
         E -->|Retorna trechos relevantes da legislação| C
-        C -->|Prompt: Pergunta + Trechos Legais Oficiais| F[LLM - Llama 3.3 70B via GroqCloud]
+        C -->|Prompt: Pergunta + Trechos Legais Oficiais| F[LLM via Groq]
         F -->|Resposta clara + Citação de fontes| C
     end
 
@@ -84,7 +84,7 @@ flowchart TD
 
 1. **Ingestão:** Leis, súmulas e cartilhas trabalhistas são divididas em chunks e convertidas em embeddings.
 2. **Recuperação:** A pergunta do usuário busca os chunks semanticamente mais próximos na base vetorial.
-3. **Geração Aumentada:** O modelo Llama 3.3 70B recebe o contexto recuperado e gera uma explicação simples com citação das fontes.
+3. **Geração Aumentada:** O LLM (via Groq) recebe o contexto recuperado e gera uma explicação simples com citação das fontes.
 
 ---
 
@@ -94,10 +94,10 @@ flowchart TD
 | :--- | :--- | :--- |
 | **Frontend** | React / Next.js | Interface moderna, responsiva e acessível para o usuário final |
 | **Backend** | Python & FastAPI | API REST assíncrona, rápida e escalável |
-| **Modelo de Linguagem (LLM)** | Llama 3.3 70B | Modelo de ponta executado com baixa latência via **GroqCloud** |
-| **Embeddings** | Sentence-Transformers | Modelos para geração de vetores semânticos textuais |
-| **Recuperação Vetorial** | ChromaDB / pgvector | Indexação e busca por similaridade de cosseno/vetores |
-| **Banco Relacional** | PostgreSQL | Persistência de dados, histórico e configurações |
+| **Modelo de Linguagem (LLM)** | Groq | Inferência de baixa latência; modelo configurável via `GROQ_MODEL` (padrão com Structured Outputs) |
+| **Embeddings** | Sentence-Transformers (local) | Geração de vetores semânticos textuais, sem custo de API |
+| **Recuperação Vetorial** | pgvector | Indexação e busca por similaridade de cosseno, direto no PostgreSQL |
+| **Banco Relacional** | PostgreSQL (Supabase) | Persistência de dados, histórico e configurações |
 | **Testes Automatizados** | pytest | Testes unitários, de integração e validação do pipeline |
 | **Deploy & Hospedagem** | Render / Railway | Ambiente em nuvem para hospedagem do backend e frontend |
 | **Versionamento** | Git & GitHub | Controle de versão e colaboração em equipe |
@@ -110,7 +110,7 @@ O cronograma do projeto integrador está estruturado nas seguintes etapas:
 
 - [x] **Etapa 1:** Definição do escopo, caracterização do problema e público-alvo, levantamento de fontes confiáveis e estruturação inicial do repositório.
 - [ ] **Etapa 2:** Coleta, limpeza e preparação dos documentos legais para a base de conhecimento.
-- [ ] **Etapa 3:** Desenvolvimento do protótipo do componente de IA (mecanismo RAG, embeddings e geração via Llama 3.3).
+- [ ] **Etapa 3:** Desenvolvimento do protótipo do componente de IA (mecanismo RAG, embeddings e geração via Groq).
 - [ ] **Etapa 4:** Desenvolvimento e integração do frontend e backend, implementação de testes automatizados e avaliações iniciais do modelo.
 - [ ] **Etapa 5:** Refinamento contínuo, ampliação da cobertura de testes e mitigação de alucinações/casos de borda.
 - [ ] **Etapa Final:** Deploy em produção (Render/Railway), análise dos indicadores de impacto, consolidação da documentação e produção do vídeo de apresentação.
@@ -137,11 +137,15 @@ O componente de Inteligência Artificial será submetido a baterias de testes co
 ### Pré-requisitos
 - [Git](https://git-scm.com/)
 - [Python 3.12](https://www.python.org/)
-- [uv](https://docs.astral.sh/uv/) — gerenciador de pacotes e ambiente virtual
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) — sobe o PostgreSQL 16 com `pgvector`
+- [uv](https://docs.astral.sh/uv/) — gerenciador de pacotes e ambiente virtual do backend
+- [Node.js 20+](https://nodejs.org/) e [pnpm](https://pnpm.io/) — ambiente do frontend (`npm install -g pnpm`)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) — sobe o PostgreSQL 16 com `pgvector` para desenvolvimento local
 
 Não é preciso instalar PostgreSQL na máquina: ele roda em contêiner, garantindo a
-mesma versão e as mesmas extensões para todo o grupo.
+mesma versão e as mesmas extensões para todo o grupo. Em produção/homologação, o
+banco é o **Supabase** (PostgreSQL gerenciado, já com `pgvector`) — nesse caso
+`DATABASE_URL` aponta para o Supabase em vez do contêiner local; veja
+`backend/.env.example`.
 
 ### 1. Clonar o repositório
 ```bash
@@ -170,19 +174,28 @@ uv run alembic upgrade head
 
 # Verifica se está tudo certo
 uv run pytest
+
+# Sobe o servidor
+uv run uvicorn app.main:app --reload
 ```
+
+> Para usar classificação de documentos ou o RAG (Groq + embeddings + Supabase
+> Storage), preencha `GROQ_API_KEY`, `SUPABASE_URL` e
+> `SUPABASE_SERVICE_ROLE_KEY` no `backend/.env` — sem eles, o servidor sobe
+> normalmente, só essas funcionalidades específicas ficam indisponíveis.
 
 ### 4. Configurar o Frontend (Next.js / React)
-> Ainda não implementado — será iniciado após o MVP do backend.
-
 ```bash
 cd frontend
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
-Quando o servidor do backend existir, a documentação da API ficará em
-`http://localhost:8000/docs` (Swagger) e a interface em `http://localhost:3000`.
+> O frontend hoje é a landing page e uma tela de chat de demonstração visual —
+> ainda **não** chama o backend (ver [especificação 002](specs/002-frontend-foundation/spec.md)).
+
+A documentação interativa da API do backend fica em `http://localhost:8000/docs`
+(Swagger) e a interface do frontend em `http://localhost:3000`.
 
 ---
 

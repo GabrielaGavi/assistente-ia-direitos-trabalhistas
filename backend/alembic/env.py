@@ -2,8 +2,8 @@
 
 A URL de conexao e lida de `DATABASE_URL` (variavel de ambiente ou
 `backend/.env`), nunca do `alembic.ini`. Assim nenhuma credencial entra no
-repositorio e a mesma migration roda contra o banco local, o de testes e a
-Neon apenas trocando a variavel.
+repositorio e a mesma migration roda contra o banco local, o de testes e o
+Supabase apenas trocando a variavel.
 
 Uso:
     alembic revision --autogenerate -m "descricao"   # gera a migration
@@ -18,16 +18,14 @@ Rastreabilidade:
 import asyncio
 from logging.config import fileConfig
 
-from sqlalchemy import pool
 from sqlalchemy.engine import Connection
-from sqlalchemy.ext.asyncio import async_engine_from_config
 
 # Importado pelo efeito colateral de registrar as tabelas em Base.metadata.
 # Sem isto o autogenerate nao enxerga as tabelas e gera uma migration vazia --
 # ou pior, um DROP TABLE. Modelos novos entram em app/models_registry.py.
 import app.models_registry  # noqa: F401
 from alembic import context
-from app.shared.database import Base, get_database_settings
+from app.shared.database import Base, create_database_engine, get_database_settings
 
 config = context.config
 
@@ -83,15 +81,14 @@ def do_run_migrations(connection: Connection) -> None:
 
 
 async def run_async_migrations() -> None:
-    """Aplica as migrations por meio de um engine assincrono."""
-    configuracao = config.get_section(config.config_ini_section, {})
-    configuracao["sqlalchemy.url"] = _database_url()
+    """Aplica as migrations por meio de um engine assincrono.
 
-    connectable = async_engine_from_config(
-        configuracao,
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    Reaproveita `create_database_engine` -- a mesma funcao usada pela
+    aplicacao -- para que a migration tambem ganhe TLS automatico contra
+    provedores remotos (Supabase, Neon) e o ajuste do pooler em modo
+    "transaction" (porta 6543), em vez de duplicar essa logica aqui.
+    """
+    connectable = create_database_engine(_database_url())
 
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)

@@ -53,6 +53,7 @@ class DocumentResponse(BaseModel):
     published_at: datetime | None = None
     is_active: bool
     status: DocumentStatus
+    original_file_path: str | None = None
     created_at: datetime
     updated_at: datetime
 

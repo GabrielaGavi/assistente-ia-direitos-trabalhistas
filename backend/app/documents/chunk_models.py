@@ -9,6 +9,7 @@ Rastreabilidade:
 from typing import Any
 from uuid import UUID
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
@@ -17,6 +18,10 @@ from app.shared.database import Base
 from app.shared.models import TimestampMixin, UUIDPrimaryKeyMixin
 
 __all__ = ["DocumentChunk"]
+
+# Dimensao do modelo de embedding usado pelo RAG (ver app/embeddings). Mudar
+# de modelo com dimensao diferente exige nova migration para a coluna.
+EMBEDDING_DIMENSIONS = 384
 
 
 class DocumentChunk(Base, UUIDPrimaryKeyMixin, TimestampMixin):
@@ -51,6 +56,13 @@ class DocumentChunk(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     page_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     metadata_extra: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+
+    # Vetor semantico do `content`, usado pela busca por similaridade do RAG.
+    # Nulo até o chunk ser processado pelo `EmbeddingProvider` -- chunks
+    # recem-criados nao entram na busca vetorial enquanto isso nao acontece.
+    embedding: Mapped[list[float] | None] = mapped_column(
+        Vector(EMBEDDING_DIMENSIONS), nullable=True
+    )
 
     __table_args__ = (
         UniqueConstraint("document_id", "chunk_index", name="uq_chunk_document_index"),
