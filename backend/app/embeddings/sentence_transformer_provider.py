@@ -7,8 +7,10 @@ Hugging Face, depois cacheado em disco) e a latencia de inferencia por chunk.
 
 import asyncio
 from functools import lru_cache
+from typing import TYPE_CHECKING
 
-from sentence_transformers import SentenceTransformer
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer
 
 from app.embeddings.settings import EmbeddingSettings, get_embedding_settings
 
@@ -27,6 +29,8 @@ class SentenceTransformerEmbeddingProvider:
         # por o provider ter sido instanciado -- so quem efetivamente chama
         # `embed` paga esse custo.
         if self._model is None:
+            from sentence_transformers import SentenceTransformer
+
             self._model = SentenceTransformer(self._model_name)
         return self._model
 
