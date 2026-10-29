@@ -1,5 +1,6 @@
 /* Structure and measurements preserved from the approved Optivio design. */
 import { styles } from "./styles";
+import { ComparisonIllustration } from "./comparison-illustration";
 
 export function ComparisonSection() {
   return (
@@ -156,6 +157,7 @@ export function ComparisonSection() {
               </div>
             </div>
             <div className="framer-12ruhib" data-border="true" style={styles.s9} data-landing-appear="">
+              <ComparisonIllustration kind="guidance" label="Atendimento sem contexto" />
               <div className="framer-1rnge20" style={styles.s9} data-landing-appear="">
                 <div className="framer-abiso2" data-framer-component-type="RichTextContainer" style={styles.s10}>
                   <p dir="auto" style={styles.s56} className="framer-text">
@@ -284,6 +286,7 @@ export function ComparisonSection() {
               </div>
             </div>
             <div className="framer-1qfynwt" data-border="true" style={styles.s9} data-landing-appear="">
+              <ComparisonIllustration kind="research" label="Pesquisa por conta própria" />
               <div className="framer-1y121y3" style={styles.s9} data-landing-appear="">
                 <div className="framer-syp47g" data-framer-component-type="RichTextContainer" style={styles.s10}>
                   <p dir="auto" style={styles.s56} className="framer-text">
@@ -397,6 +400,7 @@ export function ComparisonSection() {
               </div>
             </div>
             <div className="framer-12ruhib" data-border="true" style={styles.s9} data-landing-appear="">
+              <ComparisonIllustration kind="guidance" label="Atendimento sem contexto" />
               <div className="framer-1rnge20" style={styles.s9} data-landing-appear="">
                 <div className="framer-abiso2" data-framer-component-type="RichTextContainer" style={styles.s10}>
                   <p dir="auto" style={styles.s56} className="framer-text">
@@ -525,6 +529,7 @@ export function ComparisonSection() {
               </div>
             </div>
             <div className="framer-1qfynwt" data-border="true" style={styles.s9} data-landing-appear="">
+              <ComparisonIllustration kind="research" label="Pesquisa por conta própria" />
               <div className="framer-1y121y3" style={styles.s9} data-landing-appear="">
                 <div className="framer-syp47g" data-framer-component-type="RichTextContainer" style={styles.s10}>
                   <p dir="auto" style={styles.s56} className="framer-text">

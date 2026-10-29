@@ -1,4 +1,4 @@
-/* Structure and measurements preserved from the approved Optivio design. */
+/* Hero measurements preserved from the approved visual direction. */
 import { styles } from "./styles";
 import { LandingHands } from "./landing-hands";
 
@@ -52,7 +52,7 @@ export function HeroSection() {
                 <div className="framer-1i6pas1-container" data-framer-name="Hero Heading" style={styles.s9} data-landing-appear="">
                   <div className="ssr-variant hidden-v75cpf hidden-19vnmbx hidden-1825mw0">
                     <div style={styles.s12}>
-                      <h1 style={styles.s13} aria-label="Turn traffic into customers automatically">
+                      <h1 style={styles.s13} aria-label="Transforme dúvidas em direitos com clareza">
                         {"Transforme dúvidas em "}
                         <span className="direito-word">
                           {"direitos"}
@@ -62,26 +62,26 @@ export function HeroSection() {
                       </h1>
                       <div aria-hidden="true" style={styles.s14}>
                         <span style={styles.s15}>
-                          {"customers"}
+                          {"férias"}
                         </span>
                         <span style={styles.s15}>
-                          {"leads"}
+                          {"FGTS"}
                         </span>
                         <span style={styles.s15}>
-                          {"sign-ups"}
+                          {"jornada"}
                         </span>
                         <span style={styles.s15}>
-                          {"revenue"}
+                          {"rescisão"}
                         </span>
                         <span style={styles.s15}>
-                          {"buyers"}
+                          {"13º salário"}
                         </span>
                       </div>
                     </div>
                   </div>
                   <div className="ssr-variant hidden-19vnmbx hidden-72rtr7">
                     <div style={styles.s12}>
-                      <h1 style={styles.s16} aria-label="Turn traffic into customers automatically">
+                      <h1 style={styles.s16} aria-label="Transforme dúvidas em direitos com clareza">
                         {"Transforme dúvidas em "}
                         <span className="direito-word">
                           {"direitos"}
@@ -91,26 +91,26 @@ export function HeroSection() {
                       </h1>
                       <div aria-hidden="true" style={styles.s17}>
                         <span style={styles.s15}>
-                          {"customers"}
+                          {"férias"}
                         </span>
                         <span style={styles.s15}>
-                          {"leads"}
+                          {"FGTS"}
                         </span>
                         <span style={styles.s15}>
-                          {"sign-ups"}
+                          {"jornada"}
                         </span>
                         <span style={styles.s15}>
-                          {"revenue"}
+                          {"rescisão"}
                         </span>
                         <span style={styles.s15}>
-                          {"buyers"}
+                          {"13º salário"}
                         </span>
                       </div>
                     </div>
                   </div>
                   <div className="ssr-variant hidden-v75cpf hidden-1825mw0 hidden-72rtr7">
                     <div style={styles.s12}>
-                      <h1 style={styles.s18} aria-label="Turn traffic into customers automatically">
+                      <h1 style={styles.s18} aria-label="Transforme dúvidas em direitos com clareza">
                         {"Transforme dúvidas em "}
                         <span className="direito-word">
                           {"direitos"}
@@ -120,19 +120,19 @@ export function HeroSection() {
                       </h1>
                       <div aria-hidden="true" style={styles.s19}>
                         <span style={styles.s15}>
-                          {"customers"}
+                          {"férias"}
                         </span>
                         <span style={styles.s15}>
-                          {"leads"}
+                          {"FGTS"}
                         </span>
                         <span style={styles.s15}>
-                          {"sign-ups"}
+                          {"jornada"}
                         </span>
                         <span style={styles.s15}>
-                          {"revenue"}
+                          {"rescisão"}
                         </span>
                         <span style={styles.s15}>
-                          {"buyers"}
+                          {"13º salário"}
                         </span>
                       </div>
                     </div>
