@@ -45,18 +45,6 @@ class SourceRepository:
     async def get_by_id(self, source_id: UUID) -> Source | None:
         return await self._session.scalar(select(Source).where(Source.id == source_id))
 
-    async def get_by_short_name(self, short_name: str) -> Source | None:
-        return await self._session.scalar(select(Source).where(Source.short_name == short_name))
-
-    async def list_all(self) -> list[Source]:
-        return list(await self._session.scalars(select(Source).order_by(Source.name.asc())))
-
-    async def create(self, source: Source) -> Source:
-        self._session.add(source)
-        await self._session.flush()
-        await self._session.refresh(source)
-        return source
-
     async def list_sources(
         self,
         *,

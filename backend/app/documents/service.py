@@ -84,6 +84,10 @@ class StorageUnavailableError(RuntimeError):
     """Upload de arquivo foi solicitado sem um `StorageProvider` configurado."""
 
 
+class DuplicateChunkIndexError(ValueError):
+    """Ja existe um chunk com este indice para o documento."""
+
+
 class DocumentService:
     def __init__(
         self,
@@ -164,6 +168,79 @@ class DocumentService:
             offset=offset,
             limit=limit,
         )
+
+    async def add_chunk(
+        self,
+        document_id: UUID,
+        *,
+        chunk_index: int,
+        content: str,
+        official_url: str,
+        article: str | None = None,
+        section: str | None = None,
+        paragraph: str | None = None,
+        page_number: int | None = None,
+        actor_id: UUID | None = None,
+    ) -> DocumentChunk:
+        """Cadastra um trecho manualmente -- nao ha pipeline de ingestao (PDF/OCR) ainda.
+
+        `source_id` e copiado do documento, nao recebido do chamador: e
+        desnormalizado de proposito (ver `DocumentChunk`) e so pode ser o da
+        fonte do proprio documento, nunca outra.
+        """
+        async with self._repository.transaction():
+            doc = await self._repository.get_by_id(document_id)
+            if doc is None:
+                raise DocumentNotFoundError("Documento nao encontrado.")
+            chunk = DocumentChunk(
+                document_id=document_id,
+                source_id=doc.source_id,
+                chunk_index=chunk_index,
+                content=content,
+                official_url=official_url,
+                article=article,
+                section=section,
+                paragraph=paragraph,
+                page_number=page_number,
+            )
+            await self._repository.save_chunk(chunk)
+            await self._repository.record_audit(
+                AuditLog(
+                    action=AuditAction.DOCUMENT_CHUNK_ADDED,
+                    entity_type="Document",
+                    entity_id=doc.id,
+                    actor_id=actor_id,
+                    details={"chunk_index": chunk_index},
+                )
+            )
+            return chunk
+
+    async def mark_ready(self, document_id: UUID, *, actor_id: UUID | None = None) -> Document:
+        """Transiciona PROCESSING -> READY, liberando o documento para `activate`.
+
+        Normalmente seria o fim automatico do pipeline de ingestao; sem ele,
+        e uma acao administrativa explicita apos cadastrar os chunks.
+        """
+        async with self._repository.transaction():
+            doc = await self._repository.get_by_id(document_id)
+            if doc is None:
+                raise DocumentNotFoundError("Documento nao encontrado.")
+            if doc.status != DocumentStatus.PROCESSING:
+                raise InvalidDocumentStatusError(
+                    "Documento so pode ser marcado como pronto a partir de PROCESSING."
+                )
+            _, total_chunks = await self._repository.list_chunks(
+                document_id, article=None, section=None, offset=0, limit=1
+            )
+            if total_chunks == 0:
+                raise DocumentHasNoChunksError(
+                    "Documento nao possui chunks; adicione ao menos um antes de marcar como pronto."
+                )
+            before = self._state(doc)
+            doc.status = DocumentStatus.READY
+            await self._repository.save(doc)
+            await self._audit(doc, AuditAction.DOCUMENT_READY, before, actor_id)
+            return doc
 
     async def activate(self, document_id: UUID, *, actor_id: UUID | None = None) -> Document:
         async with self._repository.transaction():

@@ -5,10 +5,12 @@ from contextlib import asynccontextmanager
 from uuid import UUID
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.documents.chunk_models import DocumentChunk
 from app.documents.models import Document
+from app.documents.service import DuplicateChunkIndexError
 from app.shared.audit.models import AuditLog
 from app.sources.models import Source
 from app.sources.service import SourceNotFoundError
@@ -74,7 +76,18 @@ class DocumentRepository:
 
     async def save_chunk(self, chunk: DocumentChunk) -> None:
         self._session.add(chunk)
-        await self._session.flush()
+        try:
+            await self._session.flush()
+        except IntegrityError as error:
+            cause = error.orig.__cause__
+            if (
+                getattr(error.orig, "sqlstate", None) == "23505"
+                and getattr(cause, "constraint_name", None) == "uq_chunk_document_index"
+            ):
+                raise DuplicateChunkIndexError(
+                    f"Chunk {chunk.chunk_index} ja existe para este documento."
+                ) from error
+            raise
 
     async def search_similar_chunks(
         self,
