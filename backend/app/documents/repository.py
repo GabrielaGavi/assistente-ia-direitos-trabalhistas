@@ -72,6 +72,36 @@ class DocumentRepository:
         self._session.add(log)
         await self._session.flush()
 
+    async def save_chunk(self, chunk: DocumentChunk) -> None:
+        self._session.add(chunk)
+        await self._session.flush()
+
+    async def search_similar_chunks(
+        self,
+        *,
+        embedding: list[float],
+        limit: int = 5,
+        source_id: UUID | None = None,
+    ) -> list[DocumentChunk]:
+        """Os `limit` chunks mais proximos de `embedding` por distancia de cosseno.
+
+        Restrito a chunks com embedding gerado e a documentos ativos: um
+        documento ainda em `PROCESSING`/`READY` ou ja `INACTIVE` nunca deve
+        fundamentar uma resposta (ver OVERVIEW TECNICO.md, secao 26).
+        """
+        filtros = [DocumentChunk.embedding.is_not(None), Document.is_active.is_(True)]
+        if source_id is not None:
+            filtros.append(DocumentChunk.source_id == source_id)
+
+        resultado = await self._session.scalars(
+            select(DocumentChunk)
+            .join(Document, Document.id == DocumentChunk.document_id)
+            .where(*filtros)
+            .order_by(DocumentChunk.embedding.cosine_distance(embedding))
+            .limit(limit)
+        )
+        return list(resultado)
+
     async def list_documents(
         self,
         *,

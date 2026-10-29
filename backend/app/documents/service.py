@@ -6,9 +6,20 @@ from re import fullmatch
 from typing import Protocol
 from uuid import UUID
 
+from app.ai.provider import LLMProvider
+from app.ai.schemas import DocumentClassification
 from app.documents.chunk_models import DocumentChunk
 from app.documents.models import Document, DocumentStatus
+from app.embeddings.provider import EmbeddingProvider
 from app.shared.audit.models import AuditAction, AuditLog
+from app.storage.provider import StorageProvider
+
+# Limite pratico para "todos os chunks de um documento" em uma classificacao
+# ou geracao de embeddings. Nao ha paginacao aqui porque o texto inteiro
+# precisa ir numa unica chamada (classificacao) ou todos os chunks precisam
+# ser percorridos (embeddings); documentos maiores que isso nao sao o caso de
+# uso atual.
+_MAX_CHUNKS_PARA_CLASSIFICACAO = 10_000
 
 
 class DocumentStore(Protocol):
@@ -19,6 +30,7 @@ class DocumentStore(Protocol):
     async def add(self, document: Document) -> None: ...
     async def save(self, document: Document) -> None: ...
     async def record_audit(self, log: AuditLog) -> None: ...
+    async def save_chunk(self, chunk: DocumentChunk) -> None: ...
     async def list_documents(
         self,
         *,
@@ -56,9 +68,35 @@ class InvalidDocumentStatusError(ValueError):
     """Apenas documentos prontos ou historicos podem ser ativados."""
 
 
+class DocumentClassificationUnavailableError(RuntimeError):
+    """Classificacao foi solicitada sem um `LLMProvider` configurado."""
+
+
+class DocumentHasNoChunksError(ValueError):
+    """Documento sem nenhum chunk nao tem texto para classificar ou indexar."""
+
+
+class EmbeddingUnavailableError(RuntimeError):
+    """Geracao de embeddings foi solicitada sem um `EmbeddingProvider` configurado."""
+
+
+class StorageUnavailableError(RuntimeError):
+    """Upload de arquivo foi solicitado sem um `StorageProvider` configurado."""
+
+
 class DocumentService:
-    def __init__(self, repository: DocumentStore) -> None:
+    def __init__(
+        self,
+        repository: DocumentStore,
+        *,
+        ai_provider: LLMProvider | None = None,
+        embedding_provider: EmbeddingProvider | None = None,
+        storage_provider: StorageProvider | None = None,
+    ) -> None:
         self._repository = repository
+        self._ai_provider = ai_provider
+        self._embedding_provider = embedding_provider
+        self._storage_provider = storage_provider
 
     async def create(
         self,
@@ -159,6 +197,122 @@ class DocumentService:
             doc.status = DocumentStatus.INACTIVE
             await self._repository.save(doc)
             await self._audit(doc, AuditAction.DOCUMENT_DEACTIVATED, before, actor_id)
+            return doc
+
+    async def classify(
+        self, document_id: UUID, *, actor_id: UUID | None = None
+    ) -> DocumentClassification:
+        """Classifica o documento via `LLMProvider` e persiste o resultado.
+
+        O texto enviado ao provider e a concatenacao do conteudo de todos os
+        chunks do documento -- uma unica chamada, nao uma por chunk. O
+        resultado e denormalizado em `metadata_extra` de cada chunk, sob a
+        chave "ai_classification", seguindo o mesmo padrao de denormalizacao
+        ja usado para `source_id` em `DocumentChunk`.
+        """
+        if self._ai_provider is None:
+            raise DocumentClassificationUnavailableError(
+                "Nenhum provider de IA foi configurado para este DocumentService."
+            )
+        async with self._repository.transaction():
+            doc = await self._repository.get_by_id(document_id)
+            if doc is None:
+                raise DocumentNotFoundError("Documento nao encontrado.")
+            chunks, _ = await self._repository.list_chunks(
+                document_id,
+                article=None,
+                section=None,
+                offset=0,
+                limit=_MAX_CHUNKS_PARA_CLASSIFICACAO,
+            )
+            if not chunks:
+                raise DocumentHasNoChunksError(
+                    "Documento nao possui chunks; nao ha texto para classificar."
+                )
+            texto = "\n\n".join(chunk.content for chunk in chunks)
+            classificacao = await self._ai_provider.classify_document(texto)
+            payload = classificacao.model_dump(mode="json")
+            for chunk in chunks:
+                chunk.metadata_extra = {
+                    **(chunk.metadata_extra or {}),
+                    "ai_classification": payload,
+                }
+                await self._repository.save_chunk(chunk)
+            await self._audit(doc, AuditAction.DOCUMENT_CLASSIFIED, None, actor_id)
+            return classificacao
+
+    async def embed_chunks(
+        self, document_id: UUID, *, actor_id: UUID | None = None
+    ) -> list[DocumentChunk]:
+        """Gera e persiste o embedding de cada chunk do documento.
+
+        Ao contrario de `classify`, aqui a chamada ao provider e por chunk
+        (um vetor por trecho), porque a busca do RAG recupera no granulo do
+        chunk, nao do documento inteiro.
+        """
+        if self._embedding_provider is None:
+            raise EmbeddingUnavailableError(
+                "Nenhum provider de embeddings foi configurado para este DocumentService."
+            )
+        async with self._repository.transaction():
+            doc = await self._repository.get_by_id(document_id)
+            if doc is None:
+                raise DocumentNotFoundError("Documento nao encontrado.")
+            chunks, _ = await self._repository.list_chunks(
+                document_id,
+                article=None,
+                section=None,
+                offset=0,
+                limit=_MAX_CHUNKS_PARA_CLASSIFICACAO,
+            )
+            if not chunks:
+                raise DocumentHasNoChunksError(
+                    "Documento nao possui chunks; nao ha texto para indexar."
+                )
+            for chunk in chunks:
+                chunk.embedding = await self._embedding_provider.embed(chunk.content)
+                await self._repository.save_chunk(chunk)
+            await self._audit(doc, AuditAction.DOCUMENT_EMBEDDED, None, actor_id)
+            return chunks
+
+    async def attach_original_file(
+        self,
+        document_id: UUID,
+        *,
+        filename: str,
+        content: bytes,
+        content_type: str,
+        actor_id: UUID | None = None,
+    ) -> Document:
+        """Envia o arquivo original ao `StorageProvider` e grava o caminho.
+
+        O caminho do objeto e prefixado por fonte e documento
+        (`{source_id}/{document_id}/{filename}`) para que dois documentos
+        nunca colidam no mesmo bucket, mesmo com o mesmo nome de arquivo.
+        """
+        if self._storage_provider is None:
+            raise StorageUnavailableError(
+                "Nenhum provider de storage foi configurado para este DocumentService."
+            )
+        async with self._repository.transaction():
+            doc = await self._repository.get_by_id(document_id)
+            if doc is None:
+                raise DocumentNotFoundError("Documento nao encontrado.")
+            caminho = f"{doc.source_id}/{doc.id}/{filename}"
+            caminho_armazenado = await self._storage_provider.upload(
+                caminho, content, content_type=content_type
+            )
+            doc.original_file_path = caminho_armazenado
+            await self._repository.save(doc)
+            await self._repository.record_audit(
+                AuditLog(
+                    action=AuditAction.DOCUMENT_FILE_ATTACHED,
+                    entity_type="Document",
+                    entity_id=doc.id,
+                    actor_id=actor_id,
+                    details={"original_file_path": caminho_armazenado},
+                )
+            )
             return doc
 
     async def _locked_document(self, document_id: UUID) -> Document:
