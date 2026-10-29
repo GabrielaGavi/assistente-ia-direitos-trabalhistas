@@ -9,9 +9,21 @@ Rastreabilidade:
 
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
-__all__ = ["DocumentChunkResponse"]
+__all__ = ["DocumentChunkCreate", "DocumentChunkResponse"]
+
+
+class DocumentChunkCreate(BaseModel):
+    """Cadastro manual de um trecho -- nao ha pipeline de ingestao (PDF/OCR) ainda."""
+
+    chunk_index: int = Field(ge=0)
+    content: str = Field(min_length=1)
+    official_url: str = Field(min_length=1, max_length=1000)
+    article: str | None = Field(default=None, max_length=50)
+    section: str | None = Field(default=None, max_length=100)
+    paragraph: str | None = Field(default=None, max_length=50)
+    page_number: int | None = Field(default=None, ge=1)
 
 
 class DocumentChunkResponse(BaseModel):

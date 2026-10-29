@@ -19,7 +19,9 @@ Rastreabilidade:
     Tasks: T006, T007 (etapa REFACTOR)
 """
 
+from app.auth import models as _user_models  # noqa: F401
 from app.citations import models as _citation_models  # noqa: F401
+from app.conversations import models as _conversation_models  # noqa: F401
 from app.documents import chunk_models as _chunk_models  # noqa: F401
 from app.documents import models as _document_models  # noqa: F401
 from app.shared.audit import models as _audit_models  # noqa: F401

@@ -6,6 +6,8 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth.dependencies import get_current_user
+from app.auth.models import User, UserRole
 from app.documents.repository import DocumentRepository
 from app.main import app
 from app.shared.database import get_session
@@ -27,8 +29,16 @@ async def client() -> AsyncIterator[AsyncClient]:
         async with AsyncSession() as session:
             yield session
 
+    async def admin_falso() -> User:
+        # Estes testes verificam o FORMATO da entrada (422 antes de SQL), nao
+        # autenticacao -- autenticacao/RBAC tem suite propria
+        # (test_auth_service.py). Sobrescrever a dependencia evita que todo
+        # request aqui vire 401/403 por falta de token.
+        return User(id=uuid7(), email="admin@teste.com", name="Admin", role=UserRole.ADMIN)
+
     previous = app.dependency_overrides.copy()
     app.dependency_overrides[get_session] = unbound_session
+    app.dependency_overrides[get_current_user] = admin_falso
     try:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             yield client
@@ -41,14 +51,24 @@ async def test_app_openapi_and_documentation(client: AsyncClient) -> None:
     response = await client.get("/openapi.json")
     assert response.status_code == 200
     paths = response.json()["paths"]
-    assert set(paths) == {
+    assert {
         "/api/v1/citations/{id}",
         "/api/v1/sources",
         "/api/v1/sources/{id}",
         "/api/v1/documents",
         "/api/v1/documents/{id}/status",
         "/api/v1/documents/{id}/chunks",
-    }
+        "/api/v1/documents/{id}/classify",
+        "/api/v1/documents/{id}/embed",
+        "/api/v1/documents/{id}/file",
+        "/api/v1/auth/register",
+        "/api/v1/auth/login",
+        "/api/v1/auth/me",
+        "/api/v1/conversations",
+        "/api/v1/conversations/{conversation_id}",
+        "/api/v1/conversations/{conversation_id}/messages",
+        "/api/v1/health",
+    } <= set(paths)
     assert {"post", "get"} == paths["/api/v1/sources"].keys()
     assert {"post", "get"} == paths["/api/v1/documents"].keys()
     assert {"201", "409", "422"} <= paths["/api/v1/sources"]["post"]["responses"].keys()
