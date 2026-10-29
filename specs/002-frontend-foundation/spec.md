@@ -116,6 +116,7 @@ Como administrador autorizado, quero consultar fontes e documentos, acompanhar p
 
 - O primeiro corte de interface prioriza chat, citações e histórico; autenticação e administração entram de forma incremental conforme os contratos do backend forem disponibilizados.
 - A sessão pode começar de maneira anônima e evoluir para uma conta autenticada sem mudar o comportamento básico de perguntas e evidências.
+- O login é opcional e acessado pelo header da landing ou do chat, em diálogo independente. A sessão anônima permite inicialmente 3 perguntas por cerca de 4 horas; ao entrar, a conversa é preservada sem duplicar mensagens. Implementação e limites atuais: [ADR 0006](../../docs/adr/0006-login-opcional-e-conversa-anonima.md).
 - As respostas recebem referências no formato numérico e a interface consulta detalhes de uma referência por seu identificador público, nunca por identificadores internos de trechos.
 - Os contratos de conversa, autenticação, streaming, interrupção, regeneração e administração ainda precisam ser formalizados pelo backend antes de sua integração real.
 - O conteúdo legal e os links oficiais são de responsabilidade do backend; a interface não interpreta nem inventa informação jurídica.

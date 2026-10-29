@@ -58,6 +58,25 @@ class ConversationRepository:
         self._session.add(message)
         await self._session.flush()
 
+    async def list_anonymous_conversations(
+        self, session_id: UUID, *, offset: int = 0, limit: int = 20
+    ) -> tuple[list[Conversation], int]:
+        filters = (
+            Conversation.anonymous_session_id == session_id,
+            Conversation.deleted_at.is_(None),
+        )
+        total = await self._session.scalar(
+            select(func.count()).select_from(Conversation).where(*filters)
+        )
+        items = await self._session.scalars(
+            select(Conversation)
+            .where(*filters)
+            .order_by(Conversation.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        return list(items), total or 0
+
     async def list_messages(self, conversation_id: UUID) -> list[Message]:
         return list(
             await self._session.scalars(

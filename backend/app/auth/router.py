@@ -2,9 +2,10 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.anonymous.repository import AnonymousRepository
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
 from app.auth.repository import UserRepository
@@ -27,11 +28,13 @@ router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 async def register(
     payload: UserRegister,
     session: Annotated[AsyncSession, Depends(get_session)],
+    anonymous_token: Annotated[str | None, Header(alias="X-Anonymous-Token")] = None,
 ) -> TokenResponse:
     try:
         user = await AuthService(UserRepository(session)).register(**payload.model_dump())
     except EmailAlreadyRegisteredError as error:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
+    await AnonymousRepository(session).claim(anonymous_token, user.id)
     return _token_response(user)
 
 
@@ -44,13 +47,13 @@ async def register(
 async def login(
     payload: UserLogin,
     session: Annotated[AsyncSession, Depends(get_session)],
+    anonymous_token: Annotated[str | None, Header(alias="X-Anonymous-Token")] = None,
 ) -> TokenResponse:
     try:
         user = await AuthService(UserRepository(session)).login(**payload.model_dump())
     except InvalidCredentialsError as error:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(error)
-        ) from error
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(error)) from error
+    await AnonymousRepository(session).claim(anonymous_token, user.id)
     return _token_response(user)
 
 
