@@ -15,6 +15,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from datetime import datetime
 from functools import lru_cache
+from typing import Any
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import TIMESTAMP
@@ -27,6 +28,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import NullPool
 
 __all__ = [
     "Base",
@@ -41,6 +43,14 @@ __all__ = [
 ]
 
 _DRIVER_ESPERADO = "postgresql+asyncpg"
+
+# Hosts que rodam no mesmo ambiente de dev/testes (docker-compose). Qualquer
+# outro host e tratado como provedor gerenciado remoto (Supabase, Neon etc.),
+# que exige TLS.
+_HOSTS_LOCAIS = {"localhost", "127.0.0.1", "::1", "db", "postgres"}
+
+# Porta padrao do Supavisor/PgBouncer em modo "transaction" no Supabase.
+_PORTA_POOLER_TRANSACTION = 6543
 
 
 class Base(DeclarativeBase):
@@ -101,8 +111,46 @@ def _validar_driver_assincrono(url: str) -> None:
         )
 
 
+def _opcoes_de_conexao(url_analisada: Any) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Deriva `connect_args`/kwargs do engine a partir do host e da porta.
+
+    Isolado de `create_database_engine` para ser testavel sem abrir conexao
+    nenhuma: so inspeciona a URL, nunca toca a rede.
+
+    - Host remoto (fora de `_HOSTS_LOCAIS`): exige TLS, que o Supabase recusa
+      conexao sem.
+    - Porta 6543 (Supavisor/PgBouncer em modo "transaction" no Supabase): esse
+      modo nao suporta prepared statements. Sem desligar o cache do asyncpg,
+      a segunda query na mesma conexao reciclada pelo pooler falharia com
+      "prepared statement ... does not exist". Como o pooler ja faz o
+      pooling de conexoes, o `NullPool` evita um segundo pool por cima dele.
+    """
+    connect_args: dict[str, Any] = {}
+    engine_kwargs: dict[str, Any] = {}
+
+    if (url_analisada.host or "").lower() not in _HOSTS_LOCAIS:
+        connect_args["ssl"] = "require"
+
+    if url_analisada.port == _PORTA_POOLER_TRANSACTION:
+        connect_args["statement_cache_size"] = 0
+        engine_kwargs["poolclass"] = NullPool
+    else:
+        # A Neon e o Supabase (fora do pooler transaction) encerram conexoes
+        # ociosas. Sem o pre-ping, a aplicacao pegaria uma conexao morta do
+        # pool e falharia na primeira query apos o ocio.
+        engine_kwargs["pool_pre_ping"] = True
+        # Recicla conexoes antes do limite tipico de inatividade do provedor.
+        engine_kwargs["pool_recycle"] = 300
+
+    return connect_args, engine_kwargs
+
+
 def create_database_engine(url: str, *, echo: bool = False) -> AsyncEngine:
     """Cria o engine assincrono.
+
+    Adapta automaticamente dois pontos especificos de provedores gerenciados
+    (Supabase, Neon etc.) a partir da propria URL -- ver `_opcoes_de_conexao`
+    -- sem exigir configuracao extra de quem sobe o processo.
 
     Args:
         url: URL de conexao com driver assincrono (`postgresql+asyncpg://...`).
@@ -116,15 +164,9 @@ def create_database_engine(url: str, *, echo: bool = False) -> AsyncEngine:
     """
     _validar_driver_assincrono(url)
 
-    return create_async_engine(
-        url,
-        echo=echo,
-        # A Neon encerra conexoes ociosas. Sem o pre-ping, a aplicacao pegaria
-        # uma conexao morta do pool e falharia na primeira query apos o ocio.
-        pool_pre_ping=True,
-        # Recicla conexoes antes do limite tipico de inatividade do provedor.
-        pool_recycle=300,
-    )
+    connect_args, engine_kwargs = _opcoes_de_conexao(make_url(url))
+
+    return create_async_engine(url, echo=echo, connect_args=connect_args, **engine_kwargs)
 
 
 def create_session_factory(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
