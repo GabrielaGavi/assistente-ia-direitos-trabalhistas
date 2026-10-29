@@ -31,9 +31,10 @@ conversa para o chat. As instâncias são destruídas ao sair de cada rota.
 O FAQ anima a altura de cada painel com GSAP, inclusive ao fechar.
 
 Fontes locais ficam em `public/fonts/` e `src/app/fonts/`. A estátua convertida
-fica em `public/assets/statue-head.webp`. Os arquivos antigos de referência
-não são dependências do desenvolvimento ou do build. Não há geração de HTML
-nem cópia de bibliotecas para `public/vendor`.
+fica em `public/assets/statue-head.webp` e é necessária para o shader.
+A implementação antiga do Optivio, seus assets e as referências locais foram
+removidos. Os efeitos atuais usam canvas, GSAP e Lenis; não dependem de Three.js.
+Não há geração de HTML nem cópia de bibliotecas para `public/vendor`.
 
 O layout compartilhado usa `next/font/local` com as mesmas fontes Geist do chat,
 salvas em `src/app/fonts/`. Todas as fontes necessárias estão no repositório;
