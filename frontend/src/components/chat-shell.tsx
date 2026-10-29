@@ -1,21 +1,138 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import gsap from "gsap";
+import Lenis from "lenis";
+import { chatTopics } from "@/lib/chat-topics";
+import styles from "./chat-shell.module.css";
 
 type Message = { role: "user" | "assistant"; content: string };
-const suggestions = ["Fui demitida sem justa causa. O que preciso verificar?", "Como funciona o adicional noturno?", "Quais documentos ajudam a comprovar horas extras?"];
+const previewAnswer = "Recebi sua pergunta. Esta conversa ainda é uma demonstração: não estou consultando a base jurídica nem emitindo uma orientação sobre o seu caso. Quando a integração estiver disponível, esta área mostrará a explicação, os limites e as referências consultadas.";
 
-export function ChatShell() {
+export function ChatShell({ initialDraft = "", initialTopic }: { initialDraft?: string; initialTopic?: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [draft, setDraft] = useState("");
-  function send(value = draft) {
-    const question = value.trim(); if (!question) return;
-    setMessages((current) => [...current, { role: "user", content: question }, { role: "assistant", content: "Esta é uma prévia da interface. Quando a conexão com o backend estiver pronta, vou consultar fontes oficiais, destacar os limites da orientação e apresentar cada citação verificável aqui." }]);
-    setDraft("");
-    requestAnimationFrame(() => gsap.fromTo("[data-message]:last-child", { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power2.out" }));
+  const [draft, setDraft] = useState(initialDraft);
+  const [topic, setTopic] = useState<string | undefined>(initialTopic);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const root = useRef<HTMLElement>(null);
+  const scroll = useRef<HTMLDivElement>(null);
+  const content = useRef<HTMLDivElement>(null);
+  const textarea = useRef<HTMLTextAreaElement>(null);
+  const menu = useRef<HTMLElement>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  const smooth = useRef<Lenis | null>(null);
+
+  useEffect(() => {
+    const wrapper = scroll.current, inner = content.current;
+    if (!wrapper || !inner) return;
+    const motion = matchMedia("(prefers-reduced-motion: reduce)");
+    const lenis = new Lenis({ wrapper, content: inner, duration: 1.08, smoothWheel: !motion.matches, wheelMultiplier: .85, autoRaf: false, overscroll: false });
+    smooth.current = lenis;
+    const tick = (time: number) => lenis.raf(time * 1000);
+    gsap.ticker.add(tick);
+    const intro = gsap.context(() => {
+      if (motion.matches) return;
+      gsap.fromTo("[data-chat-intro]", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: .75, stagger: .07, ease: "power3.out" });
+    }, root);
+    return () => { intro.revert(); gsap.ticker.remove(tick); lenis.destroy(); smooth.current = null; };
+  }, []);
+
+  useLayoutEffect(() => {
+    const input = textarea.current;
+    if (!input) return;
+    input.style.height = "auto";
+    input.style.height = `${Math.min(input.scrollHeight, 144)}px`;
+  }, [draft]);
+
+  useEffect(() => {
+    if (initialDraft) {
+      textarea.current?.focus({ preventScroll: true });
+      textarea.current?.setSelectionRange(initialDraft.length, initialDraft.length);
+    }
+  }, [initialDraft]);
+
+  useEffect(() => {
+    if (!messages.length || !content.current) return;
+    const nodes = content.current.querySelectorAll("[data-message]");
+    const animation = gsap.fromTo(Array.from(nodes).slice(-2), { opacity: 0, y: 10 }, { opacity: 1, y: 0, stagger: .10, duration: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : .45, ease: "power2.out" });
+    smooth.current?.resize();
+    smooth.current?.scrollTo("bottom", { duration: .8 });
+    return () => { animation.kill(); };
+  }, [messages]);
+
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    const update = () => root.current?.style.setProperty("--chat-height", `${viewport?.height ?? window.innerHeight}px`);
+    update(); viewport?.addEventListener("resize", update);
+    return () => viewport?.removeEventListener("resize", update);
+  }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    closeButton.current?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { setMenuOpen(false); menuButton.current?.focus(); }
+      if (event.key !== "Tab") return;
+      const buttons = menu.current?.querySelectorAll<HTMLElement>("a[href],button");
+      if (!buttons?.length) return;
+      const first = buttons[0], last = buttons[buttons.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
+  function choose(value: string, id?: string) {
+    setDraft(value); setTopic(id); setMenuOpen(false);
+    textarea.current?.focus({ preventScroll: true });
   }
-  function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); send(); }
-  return <main className="chatApp"><aside className="chatSidebar"><Link href="/" className="chatBrand"><span className="chatMark">✣</span>direito <em>em claro</em></Link><button className="newChat" onClick={() => { setMessages([]); setDraft(""); }}><span>＋</span> Nova conversa</button><div className="sidebarHistory"><p>HOJE</p><button onClick={() => setDraft(suggestions[0])}>Direitos após demissão</button><button onClick={() => setDraft(suggestions[1])}>Adicional noturno</button></div><div className="sidebarFoot"><span className="statusDot" /> fontes oficiais em breve</div></aside><section className="chatStage"><header className="chatTopbar"><button className="mobileMenu" aria-label="Abrir menu">☰</button><span>Assistente trabalhista <b>prévia</b></span><Link href="/">Sair ↗</Link></header><div className={`chatContent ${messages.length ? "hasMessages" : ""}`}>{messages.length === 0 ? <div className="chatWelcome"><p className="chatKicker">HUMANO NA PERGUNTA · LEI NA FONTE</p><h1>O que aconteceu no seu <em>trabalho?</em></h1><p>Conte com suas palavras. Vamos transformar sua dúvida em uma orientação clara, com referências para você conferir.</p><div className="suggestions">{suggestions.map((suggestion) => <button key={suggestion} onClick={() => send(suggestion)}>{suggestion}<span>↗</span></button>)}</div></div> : <div className="messages">{messages.map((message, index) => <article data-message key={`${message.role}-${index}`} className={`message ${message.role}`}><div className="messageIdentity">{message.role === "user" ? "VOCÊ" : "DIREITO EM CLARO"}</div><p>{message.content}</p>{message.role === "assistant" && <div className="citationPreview"><span>[ 01 ]</span><div><strong>Fontes e citações aparecerão aqui</strong><small>Integração pendente com o backend</small></div><b>↗</b></div>}</article>)}</div>}</div><form className="composer" onSubmit={submit}><textarea value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Conte sua dúvida trabalhista…" rows={1} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); send(); } }} /><button type="submit" aria-label="Enviar pergunta">↑</button><p>Respostas educativas; não substitui orientação profissional.</p></form></section></main>;
+
+  function send(event?: FormEvent) {
+    event?.preventDefault();
+    const question = draft.trim();
+    if (!question) return;
+    setMessages(current => [...current, { role: "user", content: question }, { role: "assistant", content: previewAnswer }]);
+    setDraft("");
+  }
+
+  function reset() {
+    setMessages([]); setDraft(""); setTopic(undefined); setMenuOpen(false);
+    smooth.current?.scrollTo(0, { immediate: true });
+    textarea.current?.focus({ preventScroll: true });
+  }
+
+  return <main ref={root} className={`${styles.app} ${menuOpen ? styles.menuOpen : ""}`}>
+    <aside ref={menu} className={styles.sidebar} id="chat-navigation" aria-label="Navegação do assistente">
+      <div className={styles.sidebarHeader}><Link href="/" className={styles.brand}><span aria-hidden="true">✣</span>Direito em Claro</Link><button ref={closeButton} className={styles.closeMenu} aria-label="Fechar menu" onClick={() => { setMenuOpen(false); menuButton.current?.focus(); }}>×</button></div>
+      <button className={styles.newChat} onClick={reset}><span>Nova conversa</span><b aria-hidden="true">+</b></button>
+      <nav className={styles.topics} aria-label="Temas trabalhistas"><p>ESCOLHA UM TEMA</p>{chatTopics.map((item, i) => <button key={item.id} aria-pressed={topic === item.id} onClick={() => choose(item.prompt, item.id)}><span>0{i + 1}</span>{item.label}<i aria-hidden="true">↗</i></button>)}</nav>
+      <div className={styles.sidebarFooter}><span className={styles.status}><i /> DEMONSTRAÇÃO</span><p>Informação para começar.<br />Fontes para conferir.</p><Link href="/#arquitetura">Conheça o projeto <span>↗</span></Link></div>
+    </aside>
+    <button className={styles.backdrop} tabIndex={-1} aria-label="Fechar navegação" onClick={() => { setMenuOpen(false); menuButton.current?.focus(); }} />
+    <section className={styles.stage} aria-label="Conversa">
+      <header className={styles.topbar}><div><button ref={menuButton} className={styles.menuToggle} aria-label="Abrir navegação" aria-controls="chat-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}>☰</button><span>ASSISTENTE TRABALHISTA</span><span className={styles.topbarDivider}>/</span><small>Conversa {messages.length ? "em andamento" : "nova"}</small></div><Link href="/">Voltar ao site <span aria-hidden="true">↗</span></Link></header>
+      <div ref={scroll} className={styles.scroll} data-chat-scroll>
+        <div ref={content} className={styles.content}>
+          {messages.length === 0 ? <div className={styles.welcome}>
+            <p data-chat-intro className={styles.eyebrow}>[ SUA PERGUNTA É O PONTO DE PARTIDA ]</p>
+            <h1 data-chat-intro>O que aconteceu<br />no seu <span>trabalho?</span></h1>
+            <p data-chat-intro className={styles.lead}>Conte com suas palavras. Comece pelo que aconteceu e pelo que você precisa entender.</p>
+          </div> : <div className={styles.messages} role="log" aria-live="polite" aria-relevant="additions">{messages.map((message, i) => <article data-message key={i} className={`${styles.message} ${message.role === "user" ? styles.userMessage : ""}`}><div className={styles.identity}><span aria-hidden="true">{message.role === "user" ? "↳" : "✣"}</span><b>{message.role === "user" ? "SUA PERGUNTA" : "DIREITO EM CLARO"}</b></div><p>{message.content}</p>{message.role === "assistant" && <div className={styles.sourceNotice}><span aria-hidden="true">↳</span>Resposta demonstrativa · nenhuma fonte consultada.</div>}</article>)}</div>}
+        </div>
+      </div>
+      <div className={styles.composerDock}>
+        <div className={styles.composerInner}>
+          <form className={styles.composer} onSubmit={send}>
+            <div className={styles.composerHeader}><label htmlFor="chat-question">{topic ? chatTopics.find(item => item.id === topic)?.label : "SUA PERGUNTA"}</label><span>Não inclua dados pessoais.</span></div>
+            <div className={styles.inputRow}><textarea id="chat-question" ref={textarea} value={draft} onChange={event => setDraft(event.target.value)} placeholder="Escreva o que aconteceu no seu trabalho…" rows={2} data-lenis-prevent aria-describedby="chat-help" onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); send(); } }} /><button type="submit" disabled={!draft.trim()} aria-label="Enviar pergunta">↑</button></div>
+            <div className={styles.inputHint}><span>Enter para enviar</span><span>Shift + Enter para nova linha</span></div>
+          </form>
+          <p className={styles.disclaimer} id="chat-help">Conteúdo educativo. Não substitui atendimento jurídico profissional.</p>
+        </div>
+      </div>
+    </section>
+  </main>;
 }
