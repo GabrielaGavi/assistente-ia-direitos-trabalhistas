@@ -191,8 +191,11 @@ pnpm install
 pnpm dev
 ```
 
-> O frontend hoje é a landing page e uma tela de chat de demonstração visual —
-> ainda **não** chama o backend (ver [especificação 002](specs/002-frontend-foundation/spec.md)).
+> O chat integra conta, conversas e citações com o backend. O login é opcional:
+> visitantes podem fazer 3 perguntas numa sessão temporária de aproximadamente
+> 4 horas. Entrar pelo header transfere as conversas para a conta, preservando
+> mensagens e referências. Confira o [ADR 0006](docs/adr/0006-login-opcional-e-conversa-anonima.md)
+> e o [README do frontend](frontend/README.md) para configuração e testes.
 
 A documentação interativa da API do backend fica em `http://localhost:8000/docs`
 (Swagger) e a interface do frontend em `http://localhost:3000`.
